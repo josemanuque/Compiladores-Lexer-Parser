@@ -1,0 +1,4 @@
+// Aquí va la gramática BNF que hicimos solo que se pone con ::= en vez de la flecha 
+// También se declaran los terminales y los no terminales por medio de los símbolos y las producciones
+
+

@@ -1,0 +1,1 @@
+// Creo que esta clase es para manejar la tabla de símbolos 
