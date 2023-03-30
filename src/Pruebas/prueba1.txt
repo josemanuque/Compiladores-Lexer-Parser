@@ -1,0 +1,8 @@
+int miFunc(){
+    mundo*2+"mi dia"$
+}
+
+int main(){
+    hola+45*67-90$
+}
+
