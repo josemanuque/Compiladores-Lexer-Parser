@@ -1,4 +1,158 @@
+import java_cup.runtime.*;
+
+
 // Aquí va la gramática BNF que hicimos solo que se pone con ::= en vez de la flecha 
 // También se declaran los terminales y los no terminales por medio de los símbolos y las producciones
+
+
+scan with {: return lex.next_token(); :}; // define como conectarse con el scanner
+
+////// Terminales ///////
+
+terminal INT, CHAR, STRING, FLOAT, ID, CADENA;
+terminal ENTERO, DECIMAL;
+terminal BOOLEAN, TRUE, FALSE;
+terminal IF, ELIF, ELSE, DO, WHILE, FOR;
+terminal BREAK, RETURN, MAIN;
+terminal EQUIV, DEQUIV, PLUS, MINUS, TIMES, DIV, POWER, MODULE, MINUS_UN, PLUS_UN;
+terminal MAYOR_QUE, MAYOR_IGUAL, MENOR_QUE, MENOR_IGUAL;
+terminal DIF, OR, AND, NOT;
+terminal LPARENT, RPARENT, LPARENT_CUAD, RPARENT_CUAD, INIBLOQUE, FINBLOQUE;
+terminal FINEXP, COMA, PUNTO;
+
+////// NO Terminales ///////
+non terminal nuevoLenguaje;
+
+////// precedencia ///////
+
+precedence left PLUS, MINUS;
+precedence left TIMES, DIV;
+
+////// producción de inicio ///////
+
+start with nuevoLenguaje;
+
+////// producciones de la gramática ///////
+
+nuevoLenguaje ::= funciones; 
+
+// creación de variables 
+tipoVar ::= INT | FLOAT | CHAR | STRING | BOOLEAN ;
+creaVar ::= (tipoVar ID | arregloConTam) FINEXP; 
+
+// asignación de variables 
+parteIzAsig ::= tipoVar ID | ID | obtEleArreglo | arregloConTam | arregloSinTam;
+parteDAsig ::= datosSimples | ID | operacionesAritmeticas | obtEleArreglo | llamaFunc | asigArregloConTam | asigArregloSinTam | input;
+asignacion ::= parteIzAsig EQUIV parteDAsig FINEXP;
+
+////// operaciones ///////
+
+// Operaciones aritmeticas
+operandoAr ::= ENTERO | DECIMAL | ID | obtEleArreglo;
+opTipoUnario ::= ID | obtEleArreglo;
+opAritmetico ::= PLUS | MINUS | TIMES | DIV | MODULE | POWER;
+operacionesAritmeticas ::= operandoAr;
+operacionesAritmeticas ::= operacionUnaria;
+operacionesAritmeticas ::= LPARENT operacionesAritmeticas RPARENT;
+operacionesAritmeticas ::= MINUS operacionesAritmeticas;
+operacionesAritmeticas ::= operacionesAritmeticas opAritmetico operacionesAritmeticas;
+operacionUnaria ::= PLUS_UN opTipoUnario;
+operacionUnaria ::= MINUS_UN opTipoUnario;
+
+// Operaciones relacionales
+operadorRel ::= MAYOR_QUE | MAYOR_IGUAL | MENOR_QUE | MENOR_IGUAL | DEQUIV | DIF;
+operacionesRelacionales ::= operacionesAritmeticas operadorRel operacionesAritmeticas;
+
+// Operaciones logicas
+operandoLog ::= ENTERO | DECIMAL | BOOLEAN | ID | obtEleArreglo;
+opLogico ::= AND | OR;
+negacion ::= NOT;
+operacionesLogicas ::= operandoLog;
+operacionesLogicas ::= operacionesRelacionales;
+operacionesLogicas ::= LPARENT operacionesLogicas RPARENT;
+operacionesLogicas ::= negacion operacionesLogicas;
+operacionesLogicas ::= operacionesLogicas opLogico operacionesLogicas;
+operacionesLogicas ::= operacionesLogicas operadorRel operacionesLogicas;
+
+operaciones ::= operacionesAritmeticas | operacionesLogicas | operacionesRelacionales;
+
+////// arreglos estáticos ///////  falta arreglar **********************
+
+tipoArreglo ::= INT | CHAR
+tamArreglo ::= digitoSC digito* 
+arregloConTam ::= tipoArreglo ID LPARENT_CUAD tamArreglo RPARENT_CUAD
+arregloSinTam ::= tipoArreglo ID LPARENT_CUAD RPARENT_CUAD
+eleNumEnt ::= ENTERO COMA eleNumEnt | ENTERO
+eleCharP ::= . 
+eleCharS ::= letra COMA eleCharS | letra 
+asigArregloConTam ::= INIBLOQUE (eleNumEnt{tamArreglo} | '\"'eleCharP{tamArreglo}'\"' | eleCharS{tamArreglo}) FINBLOQUE FINEXP
+asigArregloSinTam ::= INIBLOQUE (eleNumEnt* | '\"'eleCharP*'\"' | eleCharS*) FINBLOQUE FINEXP
+obtEleArreglo ::= ID LPARENT_CUAD tamArreglo RPARENT_CUAD
+
+////// funciones ///////
+
+// Funcion Main
+funcionMain ::= INT MAIN LPARENT RPARENT bloque;
+
+funciones ::= funciones funcion | funcion;
+funcion ::= funcionMain | tipoRet ID parametros bloque FINEXP;
+
+// Retornos de funciones
+tipoRet ::= INT | FLOAT | BOOLEAN;	
+
+// Parametros de funciones
+parametro ::= tipoVar ID | arregloConTam | arregloSinTam;
+parametros ::= LPARENT (parametro | parametro COMA parametros) RPARENT | LPARENT RPARENT;
+
+// Bloques de funciones
+bloque ::= INIBLOQUE sentencias FINBLOQUE;
+
+// Sentencias
+sentencias ::= sentencia | sentencia sentencias;
+sentencia ::= creaVar | asignacion | operaciones | llamaFunc | control | funcion | return1 | comentarios | break | output;
+
+// Llamada a funciones
+llamaFunc ::= ID parametros FINEXP;
+
+// Return de funciones
+return1 ::= RETURN ID FINEXP;
+return1 ::= RETURN (ENTERO | DECIMAL | CHAR | CADENA | BOOLEAN) FINEXP;
+return1 ::= RETURN llamaFunc;
+return1 ::= RETURN operaciones FINEXP;
+
+// Break
+break ::= BREAK FINEXP;
+
+// Estructuras de control 
+control ::= condicional | ciclo;
+
+// Condicionales
+
+condicional ::= condIf condElif* condElse?;  // aquí hay que ver si se pueden poner ? y * 
+condIf ::= IF LPARENT operacionesLogicas RPARENT bloque;
+condElse ::= ELSE bloque;
+condElif ::= ELIF LPARENT operacionesLogicas RPARENT bloque;
+
+// Ciclos
+while ::= WHILE LPARENT operacionesLogicas RPARENT bloque;
+doWhile ::= DO bloque WHILE LPARENT operacionesLogicas RPARENT FINEXP;
+for ::= FOR LPARENT asignacion FINEXP operacionesLogicas FINEXP asignacion RPARENT bloque;
+ciclo ::= doWhile | FOR;
+
+
+////// input y output ///////
+
+// Input
+
+input ::= leeInt | leeFloat;
+leeInt ::= READ_INT LPARENT RPARENT FINEXP;
+leeFloat ::= READ_FLOAT LPARENT RPARENT FINEXP;
+
+// Output
+
+output ::= escribeInt | escribeFloat | escribeString;
+escribeInt ::= PRINT_INT LPARENT (ID | ENTERO) RPARENT FINEXP;
+escribeFloat ::= PRINT_FLOAT LPARENT (ID | DECIMAL) RPARENT FINEXP;
+escribeString ::= PRINT_STRING LPARENT (ID | cadena) RPARENT FINEXP;
 
 
