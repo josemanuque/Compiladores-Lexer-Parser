@@ -1,158 +1,158 @@
 ############## PRODUCCIONES ##############
 
 ## Simbolo Inicial
-nuevoLenguaje --> funciones 
+nuevoLenguaje ::= funciones 
 
-letra --> [a-zA-Z_]
-digito --> [0-9]
-digitoSC --> [1-9]
-cero --> 0
-ceroD --> 0\.0
-punto --> \.
-signo -->[+-]
-true --> 'true' | 1
-false --> 'false' | 0
+letra ::= [a-zA-Z_]
+digito ::= [0-9]
+digitoSC ::= [1-9]
+cero ::= 0
+ceroD ::= 0\.0
+punto ::= \.
+signo ::=[+-]
+true ::= 'true' | 1
+false ::= 'false' | 0
 
 ## Variable
-id --> letra (letra|digito)*
+id ::= letra (letra|digito)*
 
 ## Tipos de datos
-caracter --> '\'' . '\''
-cadena --> '\"' .* '\"'
-numEnt --> (signo  digitoSC digito*) | (digitoSC digito*) | cero
-numDec --> signo? (digitoSC digito* | cero ) punto digito+ | ceroD
-num --> numEnt | numDec
-boolean --> true | false
-datosSimples --> num | caracter | cadena | boolean
+caracter ::= '\'' . '\''
+cadena ::= '\"' .* '\"'
+numEnt ::= (signo  digitoSC digito*) | (digitoSC digito*) | cero
+numDec ::= signo? (digitoSC digito* | cero ) punto digito+ | ceroD
+num ::= numEnt | numDec
+boolean ::= true | false
+datosSimples ::= num | caracter | cadena | boolean
 
 ## Simbolos
-equiv --> '='
-finExp --> '$'
+equiv ::= '='
+finExp ::= '$'
 
 ## Comentarios
-noNuevaLinea --> [^\n]*
-comentariosUnaL --> '@' .* noNuevaLinea
-comentariosMultL --> '/_'.*'_/'
-comentarios --> comentariosUnaL | comentariosMultL
+noNuevaLinea ::= [^\n]*
+comentariosUnaL ::= '@' .* noNuevaLinea
+comentariosMultL ::= '/_'.*'_/'
+comentarios ::= comentariosUnaL | comentariosMultL
 
 ############## CREACION VARIABLES ##############
 
-tipoVar --> 'int' | 'float' | 'char' | 'string' | boolean
-creaVar --> (tipoVar id | arregloConTam) finExp
+tipoVar ::= 'int' | 'float' | 'char' | 'string' | boolean
+creaVar ::= (tipoVar id | arregloConTam) finExp
 
 ############## ASIGNACION VARIABLES ##############
 
-parteIzAsig --> tipoVar id | id | obtEleArreglo | arregloConTam | arregloSinTam
-parteDAsig --> datosSimples | id | operacionesAritmeticas | obtEleArreglo | llamaFunc | asigArregloConTam | asigArregloSinTam | input
-asignacion --> parteIzAsig equiv parteDAsig finExp
+parteIzAsig ::= tipoVar id | id | obtEleArreglo | arregloConTam | arregloSinTam
+parteDAsig ::= datosSimples | id | operacionesAritmeticas | obtEleArreglo | llamaFunc | asigArregloConTam | asigArregloSinTam | input
+asignacion ::= parteIzAsig equiv parteDAsig finExp
 
 ############## OPERACIONES ##############
 
 ## Operaciones aritmeticas
-operandoAr --> numEnt | numDec | id | obtEleArreglo
-opTipoUnario --> id | obtEleArreglo
-opAritmetico --> '+' | '-' | '*' | '/' | '~' | '**'
-operacionesAritmeticas --> operandoAr 
-operacionesAritmeticas --> operacionUnaria
-operacionesAritmeticas --> '(' operacionesAritmeticas ')'
-operacionesAritmeticas --> '-' operacionesAritmeticas
-operacionesAritmeticas --> operacionesAritmeticas opAritmetico operacionesAritmeticas
-operacionUnaria --> '++' opTipoUnario
-operacionUnaria --> '--' opTipoUnario
+operandoAr ::= numEnt | numDec | id | obtEleArreglo
+opTipoUnario ::= id | obtEleArreglo
+opAritmetico ::= '+' | '-' | '*' | '/' | '~' | '**'
+operacionesAritmeticas ::= operandoAr 
+operacionesAritmeticas ::= operacionUnaria
+operacionesAritmeticas ::= '(' operacionesAritmeticas ')'
+operacionesAritmeticas ::= '-' operacionesAritmeticas
+operacionesAritmeticas ::= operacionesAritmeticas opAritmetico operacionesAritmeticas
+operacionUnaria ::= '++' opTipoUnario
+operacionUnaria ::= '--' opTipoUnario
 
 ## Operaciones relacionales
-operadorRel --> '>' | '>=' | '<' | '<=' | '==' | '!='
-operacionesRelacionales --> operacionesAritmeticas operadorRel operacionesAritmeticas
+operadorRel ::= '>' | '>=' | '<' | '<=' | '==' | '!='
+operacionesRelacionales ::= operacionesAritmeticas operadorRel operacionesAritmeticas
 
 ## Operaciones logicas
-operandoLog --> num | boolean | id | obtEleArreglo
-opLogico --> '^' | '#'
-negacion --> ! | 'not'
-operacionesLogicas --> operandoLog
-operacionesLogicas --> operacionesRelacionales
-operacionesLogicas --> '(' operacionesLogicas ')'
-operacionesLogicas --> negacion operacionesLogicas
-operacionesLogicas --> operacionesLogicas opLogico operacionesLogicas
-operacionesLogicas --> operacionesLogicas operadorRel operacionesLogicas
+operandoLog ::= num | boolean | id | obtEleArreglo
+opLogico ::= '^' | '#'
+negacion ::= ! | 'not'
+operacionesLogicas ::= operandoLog
+operacionesLogicas ::= operacionesRelacionales
+operacionesLogicas ::= '(' operacionesLogicas ')'
+operacionesLogicas ::= negacion operacionesLogicas
+operacionesLogicas ::= operacionesLogicas opLogico operacionesLogicas
+operacionesLogicas ::= operacionesLogicas operadorRel operacionesLogicas
 
-operaciones --> operacionesAritmeticas | operacionesLogicas | operacionesRelacionales
+operaciones ::= operacionesAritmeticas | operacionesLogicas | operacionesRelacionales
 
 ############## ARREGLOS ESTATICOS ##############
 
-tipoArreglo --> 'int' | 'char' 
-tamArreglo --> digitoSC digito* 
-arregloConTam --> tipoArreglo id '[' tamArreglo ']'
-arregloSinTam --> tipoArreglo id '[' ']'
-eleNumEnt --> numEnt ',' eleNumEnt | numEnt
-eleCharP --> . 
-eleCharS --> letra ',' eleCharS | letra 
-asigArregloConTam --> '{' (eleNumEnt{tamArreglo} | '\"'eleCharP{tamArreglo}'\"' | eleCharS{tamArreglo}) '}' finExp
-asigArregloSinTam --> '{' (eleNumEnt* | '\"'eleCharP*'\"' | eleCharS*) '}' finExp
-obtEleArreglo --> id '[' tamArreglo ']'
+tipoArreglo ::= 'int' | 'char' 
+tamArreglo ::= digitoSC digito* 
+arregloConTam ::= tipoArreglo id '[' tamArreglo ']'
+arregloSinTam ::= tipoArreglo id '[' ']'
+eleNumEnt ::= numEnt ',' eleNumEnt | numEnt
+eleCharP ::= . 
+eleCharS ::= letra ',' eleCharS | letra 
+asigArregloConTam ::= '{' (eleNumEnt{tamArreglo} | '\"'eleCharP{tamArreglo}'\"' | eleCharS{tamArreglo}) '}' finExp
+asigArregloSinTam ::= '{' (eleNumEnt* | '\"'eleCharP*'\"' | eleCharS*) '}' finExp
+obtEleArreglo ::= id '[' tamArreglo ']'
 
 ############# FUNCIONES #############
 
 ## Funcion Main
-funcionMain --> 'int' 'main' '(' ')' bloque 
+funcionMain ::= 'int' 'main' '(' ')' bloque 
 
-funciones --> funciones funcion | funcion
-funcion --> funcionMain | tipoRet id parametros bloque finExp
+funciones ::= funciones funcion | funcion
+funcion ::= funcionMain | tipoRet id parametros bloque finExp
 
 ## Retornos de funciones
-tipoRet --> 'int' | 'float' | boolean	
+tipoRet ::= 'int' | 'float' | boolean	
 
 ## Parametros de funciones
-parametro --> tipoVar id | arregloConTam | arregloSinTam
-parametros --> '(' (parametro | parametro ',' parametros) ')' | '(' ')'
+parametro ::= tipoVar id | arregloConTam | arregloSinTam
+parametros ::= '(' (parametro | parametro ',' parametros) ')' | '(' ')'
 
 ## Bloques de funciones
-bloque --> '{' sentencias '}'
+bloque ::= '{' sentencias '}'
 
 ## Sentencias
-sentencias --> sentencia | sentencia sentencias
-sentencia --> creaVar | asignacion | operaciones | llamaFunc | control | funcion | return | comentarios | break | output
+sentencias ::= sentencia | sentencia sentencias
+sentencia ::= creaVar | asignacion | operaciones | llamaFunc | control | funcion | return | comentarios | break | output
 
 ## Llamada a funciones
-llamaFunc --> id parametros finExp
+llamaFunc ::= id parametros finExp
 
 ## Return de funciones
-return --> 'return' id finExp
-return --> 'return' datosSimples finExp
-return --> 'return' llamaFunc
-return --> 'return' operaciones finExp
+return ::= 'return' id finExp
+return ::= 'return' datosSimples finExp
+return ::= 'return' llamaFunc
+return ::= 'return' operaciones finExp
 
 ## Break
-break --> 'break' finExp
+break ::= 'break' finExp
 
 ############## ESTRUCTURAS DE CONTROL ##############
 
-control --> condicional | ciclo
+control ::= condicional | ciclo
 
 ## Condicionales
 
-condicional --> condIf condElif* condElse?
-condIf --> 'if' '(' operacionesLogicas ')' bloque
-condElse --> 'else' bloque
-condElif --> 'elif' '(' operacionesLogicas ')' bloque
+condicional ::= condIf condElif* condElse?
+condIf ::= 'if' '(' operacionesLogicas ')' bloque
+condElse ::= 'else' bloque
+condElif ::= 'elif' '(' operacionesLogicas ')' bloque
 
 ## Ciclos
-while --> 'while' '(' operacionesLogicas ')' bloque
-doWhile --> 'do' bloque 'while' '(' operacionesLogicas ')' finExp
-for --> 'for' '(' asignacion finExp operacionesLogicas finExp asignacion ')' bloque
-ciclo --> while | doWhile | for
+while ::= 'while' '(' operacionesLogicas ')' bloque
+doWhile ::= 'do' bloque 'while' '(' operacionesLogicas ')' finExp
+for ::= 'for' '(' asignacion finExp operacionesLogicas finExp asignacion ')' bloque
+ciclo ::= while | doWhile | for
 
 
 ############## Input y Output ##############
 
 ## Input
 
-input --> leeInt | leeFloat
-leeInt --> 'readInt' '('')' finExp
-leeFloat --> 'readFloat' '('')' finExp
+input ::= leeInt | leeFloat
+leeInt ::= 'readInt' '('')' finExp
+leeFloat ::= 'readFloat' '('')' finExp
 
 ## Output
 
-output --> escribeInt | escribeFloat | escribeString
-escribeInt --> 'printInt' '(' (id | numEnt) ')' finExp
-escribeFloat --> 'printFloat' '(' (id | numDec) ')' finExp
-escribeString --> 'printString' '(' (id | cadena) ')' finExp
+output ::= escribeInt | escribeFloat | escribeString
+escribeInt ::= 'printInt' '(' (id | numEnt) ')' finExp
+escribeFloat ::= 'printFloat' '(' (id | numDec) ')' finExp
+escribeString ::= 'printString' '(' (id | cadena) ')' finExp
