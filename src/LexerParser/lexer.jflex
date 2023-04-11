@@ -141,10 +141,11 @@ COMENTARIOS = {COMENTARIOS_UNA_LINEA} | {COMENTARIOS_MULTI_LINEA}
   En este caso si el Jflex no encuentra ninguna producción con la que coincida el caracter 
   entonces lo considera como error y lo imprime, por eso este YYINITIAL va de último */
 
+/*
 <YYINITIAL> . {
     String errLex = "Error léxico : "yytext()+" en la línea: "+(yyline+1)+" y columna: "+(yycolumn+1);
     System.out.println(errLex);
-}
+}*/
 
 <CADENA> {
     /* Si encuentra un fin de cadena entonces concatenamos la comilla doble, vaciamos la variable global 

@@ -1,15 +1,15 @@
 import java.io.FileReader;
+import java_cup.runtime.Symbol; // no sé que hacer para que me deje usar la librería :(
 
 public class MainJflexCup {
 
-    public MainJflexCup(){
+    public static void main (String[] args){
 
-        scanner s = new scanner(new FileReader("pruebaLexer.txt"));
+        lexer lexer = new lexer(new FileReader("prueba2.txt")); // prueba para el lexer 
         Symbol sym;
-        while((sym=s.yylex())!= null){
+        while ((sym = lexer.yylex()) != null) {
             System.out.println(sym);
         }
-    
     }
 
 }
