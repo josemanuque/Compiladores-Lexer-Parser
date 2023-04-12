@@ -23,7 +23,7 @@ scan with {: return lex.next_token(); :}; // define como conectarse con el scann
 ////// Terminales ///////
 
 terminal INT, CHAR, STRING, FLOAT, ID, CADENA;
-terminal ENTERO, DECIMAL;
+terminal ENTERO, DECIMAL, ENTERO_POSITIVO;
 terminal BOOLEAN, TRUE, FALSE;
 terminal IF, ELIF, ELSE, DO, WHILE, FOR;
 terminal BREAK, RETURN, MAIN;
@@ -32,10 +32,20 @@ terminal MAYOR_QUE, MAYOR_IGUAL, MENOR_QUE, MENOR_IGUAL;
 terminal DIF, OR, AND, NOT;
 terminal LPARENT, RPARENT, LPARENT_CUAD, RPARENT_CUAD, INIBLOQUE, FINBLOQUE;
 terminal FINEXP, COMA, PUNTO;
+terminal PRINT_INT, PRINT_FLOAT, PRINT_STRING, READ_INT, READ_FLOAT;
 
 ////// NO Terminales ///////  Falta gregar todas las demás *************************
-non terminal nuevoLenguaje, funciones, tipoVar, creaVar;
-
+non terminal nuevoLenguaje, funciones, tipoVar, creaVar, funcion, funcionMain, tipoRet, parametros, parametro, sentencias, sentencia;
+non terminal bloque, asignacion, operaciones, operacionesAritmeticas, operacionesLogicas, control;
+non terminal operacionesRelacionales, operacionUnaria, operandoAr, operandoLog, opAritmetico, opLogico;
+non terminal opTipoUnario, operadorRel, negacion, obtEleArreglo, llamaFunc, datosSimples, asigArregloConTam;
+non terminal asigArregloSinTam, input, tamArreglo, tipoArreglo, arregloConTam, parteIzAsig, parteDAsig, arregloSinTam; 
+non terminal eleNumEnt, eleCharS, eleCharP, comentarios, break, output, condicional;
+non terminal ciclo, condIf, condElif, condElse, doWhile, for, leeInt, leeFloat, escribeInt, escribeFloat, escribeString; 
+non terminal letra, return1, cadena; // Algo raro aca
+//non terminal nuevoLenguaje, funciones, tipoVar, creaVar, arregloConTam, parteIzAsig;
+//non terminal nuevoLenguaje, funciones, tipoVar, creaVar, arregloConTam, parteIzAsig;
+//non terminal nuevoLenguaje, funciones, tipoVar, creaVar, arregloConTam, parteIzAsig;
 ////// precedencia ///////
 
 precedence left PLUS, MINUS;
@@ -143,14 +153,15 @@ operaciones ::= operacionesAritmeticas
 ////// arreglos estáticos ///////  falta arreglar **********************
 
 tipoArreglo ::= INT | CHAR;
-tamArreglo ::= digitoSC digito*; 
+
+tamArreglo ::= ENTERO_POSITIVO; 
 arregloConTam ::= tipoArreglo ID LPARENT_CUAD tamArreglo RPARENT_CUAD;
 arregloSinTam ::= tipoArreglo ID LPARENT_CUAD RPARENT_CUAD;
 eleNumEnt ::= ENTERO COMA eleNumEnt | ENTERO;
-eleCharP ::= . ;
+//eleCharP ::= . ;
 eleCharS ::= letra COMA eleCharS | letra ;
 asigArregloConTam ::= INIBLOQUE (eleNumEnt{tamArreglo} | '\"'eleCharP{tamArreglo}'\"' | eleCharS{tamArreglo}) FINBLOQUE FINEXP;
-asigArregloSinTam ::= INIBLOQUE (eleNumEnt* | '\"'eleCharP*'\"' | eleCharS*) FINBLOQUE FINEXP;
+//asigArregloSinTam ::= INIBLOQUE (eleNumEnt* | eleCharS*) FINBLOQUE FINEXP;
 obtEleArreglo ::= ID LPARENT_CUAD tamArreglo RPARENT_CUAD;
 
 ////// funciones ///////
@@ -228,7 +239,6 @@ condElse ::= ELSE bloque ;
 condElif ::= ELIF LPARENT operacionesLogicas RPARENT bloque ;
 
 // Ciclos
-while ::= WHILE LPARENT operacionesLogicas RPARENT bloque ;
 doWhile ::= DO bloque WHILE LPARENT operacionesLogicas RPARENT FINEXP ;
 for ::= FOR LPARENT asignacion FINEXP operacionesLogicas FINEXP asignacion RPARENT bloque ; 
 ciclo ::= doWhile 

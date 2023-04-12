@@ -24,19 +24,20 @@ import java_cup.runtime.Symbol;
 
 ////// Expresiones ///////
 
-PUNTO     = "."
-LETRA     = [a-zA-Z_]
-DIGITO    = [0-9]
-DIGITOSC  = [1-9]
-CERO      = 0
-CEROD     = 0\.0
-SIGNO     = [+-]
-ID        = LETRA (LETRA | DIGITO)*
-ENTERO    = (SIGNO  DIGITOSC DIGITO*) | (DIGITOSC DIGITO*) | CERO
-DECIMAL   = SIGNO? (DIGITOSC DIGITO* | CERO ) PUNTO DIITO+ | CEROD
-ESPACIO   = [ \t \r \n \f \r\n] // espacio en blanco
-ENTER     = [\ \n] //salto de línea
-INICIO_FIN_CADENA = [\"] 
+PUNTO               = "."
+LETRA               = [a-zA-Z_]
+DIGITO              = [0-9]
+DIGITOSC            = [1-9]
+CERO                = 0
+CEROD               = 0\.0
+SIGNO               = [+-]
+ID                  = LETRA (LETRA | DIGITO)*
+ENTERO              = (SIGNO  DIGITOSC DIGITO*) | (DIGITOSC DIGITO*) | CERO
+ENTERO_POSITIVO     = DIGITOSC DIGITO*
+DECIMAL             = SIGNO? (DIGITOSC DIGITO* | CERO ) PUNTO DIITO+ | CEROD
+ESPACIO             = [ \t \r \n \f \r\n] // espacio en blanco
+ENTER               = [\ \n] //salto de línea
+INICIO_FIN_CADENA   = [\"] 
 
 // Comentarios
 NO_NUEVA_LINEA = [^\n]*
@@ -90,7 +91,7 @@ COMENTARIOS = {COMENTARIOS_UNA_LINEA} | {COMENTARIOS_MULTI_LINEA}
     {COMENTARIOS} {/* no se procesa */}
 
     ////// Números enteros y decimales ///////
-
+    {ENTERO_POSITIVO}  {return new Symbol (sym.ENTERO_POSITIVO, yyline, yycolumn, yytext());}
     {ENTERO}  {return new Symbol (sym.ENTERO, yyline, yycolumn, yytext());}
     {DECIMAL} {return new Symbol (sym.DECIMAL, yyline, yycolumn, yytext());}
 
