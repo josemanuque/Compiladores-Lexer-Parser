@@ -1,5 +1,7 @@
-import java.io.FileReader;
+
 import java_cup.runtime.Symbol; // no sé que hacer para que me deje usar la librería :(
+import java.io.FileReader;
+
 
 public class MainJflexCup {
 

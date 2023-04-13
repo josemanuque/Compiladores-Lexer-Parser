@@ -1,23 +1,31 @@
-package LexerParser;
+package src;
+import java_cup.runtime.*;
 
-import java_cup.runtime.Symbol;
 
-%% // esto hace referencia a una sección 
+ // esto hace referencia a una sección 
+%%
+
+
+// Características de Jflex para que funcione correctamente
+
+// da nombre a la clase lexer.java que se va a crear
+%class Lexer 
+// define como pública la clase lexer
+%public 
+%implements sym
+%line  // conteo de líneas con yyline
+%char // conteo de caracteres con yychar
+%column // conteo de columnas con yycolumn
+
+%cup // habilita la compatibilidad con cup 
+%full // utiliza el código ASCII extendido 8 bits 
+%state CADENA
 
 %{
    //Código de usuario
    String cadena = ""; // variable global; se usa para el estado de CADENA
 %}
 
-// Características de Jflex para que funcione correctamente
-%cup // habilita la compatibilidad con cup 
-%class lexer // da nombre a la clase lexer.java que se va a crear
-%public // define como pública la clase lexer
-%line  // conteo de líneas con yyline
-%char // conteo de caracteres con yychar
-%column // conteo de columnas con yycolumn
-%full // utiliza el código ASCII extendido 8 bits 
-%state CADENA
 //%ignorecase // ignora las mayusculas 
 // Aqui también se ponen los estados 
 
