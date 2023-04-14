@@ -1,48 +1,48 @@
 package src;
 import java_cup.runtime.*;
 
-
- // esto hace referencia a una sección 
 %%
-
+// esto hace referencia a una sección 
 
 // Características de Jflex para que funcione correctamente
 
-// da nombre a la clase lexer.java que se va a crear
-%class Lexer 
 // define como pública la clase lexer
 %public 
-%implements sym
-%line  // conteo de líneas con yyline
-%char // conteo de caracteres con yychar
-%column // conteo de columnas con yycolumn
-
-%cup // habilita la compatibilidad con cup 
-%full // utiliza el código ASCII extendido 8 bits 
-%state CADENA
+// da nombre a la clase lexer.java que se va a crear
+%class Lexer 
+// utiliza el código ASCII extendido 8 bits 
+%full 
+//%implements sym
+// conteo de líneas con yyline
+%line
+// conteo de caracteres con yychar  
+%char
+// conteo de columnas con yycolumn 
+%column 
+// habilita la compatibilidad con cup 
+%cup 
+%cupdebug
+// Estado para manejar los strings
+%state CADENA 
 
 %{
    //Código de usuario
    String cadena = ""; // variable global; se usa para el estado de CADENA
 %}
 
-//%ignorecase // ignora las mayusculas 
-// Aqui también se ponen los estados 
-
 
 ////// Expresiones ///////
 
-PUNTO               = "."
 LETRA               = [a-zA-Z_]
 DIGITO              = [0-9]
 DIGITOSC            = [1-9]
 CERO                = 0
 CEROD               = 0\.0
 SIGNO               = [+-]
-ID                  = LETRA (LETRA | DIGITO)*
+ID                  = [a-zA-Z_] [a-zA-Z0-9_]*
 ENTERO              = (SIGNO  DIGITOSC DIGITO*) | (DIGITOSC DIGITO*) | CERO
 ENTERO_POSITIVO     = DIGITOSC DIGITO*
-DECIMAL             = SIGNO? (DIGITOSC DIGITO* | CERO ) PUNTO DIITO+ | CEROD
+DECIMAL             = [0-9]+\.[0-9]+
 ESPACIO             = [ \t \r \n \f \r\n] // espacio en blanco
 ENTER               = [\ \n] //salto de línea
 INICIO_FIN_CADENA   = [\"] 
@@ -138,7 +138,7 @@ COMENTARIOS = {COMENTARIOS_UNA_LINEA} | {COMENTARIOS_MULTI_LINEA}
 
     "$"     {return new Symbol (sym.FINEXP, yyline, yycolumn, yytext());}
     ","     {return new Symbol (sym.COMA, yyline, yycolumn, yytext());}
-    {PUNTO} {return new Symbol (sym.PUNTO, yyline, yycolumn, yytext());}
+    <<EOF>> { return new symbol(sym.EOF);}
 
     ////// Identificador ///////
 
@@ -169,4 +169,5 @@ COMENTARIOS = {COMENTARIOS_UNA_LINEA} | {COMENTARIOS_MULTI_LINEA}
        cadena de todo lo que se encuentre */
     [^INICIO_FIN_CADENA] {cadena += yytext();}
 }
+
 
