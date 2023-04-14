@@ -14,44 +14,45 @@ parser code {:
     }
 :}
 
-
-
 //init with {: :}; // define como inicializar el parser
 scan with {: return lex.next_token(); :}; // define como conectarse con el scanner
 
 
 ////// Terminales ///////
 
-terminal INT, CHAR, STRING, FLOAT, ID, CADENA;
+terminal INT, CHAR, STRING, FLOAT, BOOLEAN;
 terminal ENTERO, DECIMAL, ENTERO_POSITIVO;
-terminal BOOLEAN, TRUE, FALSE;
+//terminal TRUE, FALSE;
 terminal IF, ELIF, ELSE, DO, WHILE, FOR;
 terminal BREAK, RETURN, MAIN;
 terminal EQUIV, DEQUIV, PLUS, MINUS, TIMES, DIV, POWER, MODULE, MINUS_UN, PLUS_UN;
 terminal MAYOR_QUE, MAYOR_IGUAL, MENOR_QUE, MENOR_IGUAL;
 terminal DIF, OR, AND, NOT;
 terminal LPARENT, RPARENT, LPARENT_CUAD, RPARENT_CUAD, INIBLOQUE, FINBLOQUE;
-terminal FINEXP, COMA, PUNTO;
+terminal FINEXP, COMA;
 terminal PRINT_INT, PRINT_FLOAT, PRINT_STRING, READ_INT, READ_FLOAT;
 
 
-non terminal nuevoLenguaje, tipoVar;
-////// NO Terminales ///////  Falta gregar todas las demás *************************
-/* non terminal nuevoLenguaje, funciones, tipoVar, creaVar, funcion, funcionMain, tipoRet, parametros, parametro, sentencias, sentencia;
+//non terminal nuevoLenguaje, tipoVar;
+////// NO Terminales ///////  
+non terminal nuevoLenguaje, funciones, tipoVar, creaVar, funcion, funcionMain, tipoRet, parametros, parametro, sentencias, sentencia;
 non terminal bloque, asignacion, operaciones, operacionesAritmeticas, operacionesLogicas, control;
 non terminal operacionesRelacionales, operacionUnaria, operandoAr, operandoLog, opAritmetico, opLogico;
-non terminal opTipoUnario, operadorRel, negacion, obtEleArreglo, llamaFunc, datosSimples, asigArregloConTam;
-non terminal asigArregloSinTam, input, tamArreglo, tipoArreglo, arregloConTam, parteIzAsig, parteDAsig, arregloSinTam; 
-non terminal eleNumEnt, eleCharS, eleCharP, comentarios, break, output, condicional;
+non terminal opTipoUnario, operadorRel, negacion, obtEleArreglo, llamaFunc, datosSimples ;
+non terminal asigArreglo, elementosArreglo, input, tamArreglo, tipoArreglo, arregloConTam, parteIzAsig, parteDAsig, arregloSinTam; 
+non terminal eleNumEnt, eleChar, comentarios, break, output, condicional;
 non terminal ciclo, condIf, condElif, condElse, doWhile, for, leeInt, leeFloat, escribeInt, escribeFloat, escribeString; 
-non terminal letra, return1, cadena; */ // Algo raro aca
+non terminal LETRA, ID, return1, CADENA; 
+
 //non terminal nuevoLenguaje, funciones, tipoVar, creaVar, arregloConTam, parteIzAsig;
 //non terminal nuevoLenguaje, funciones, tipoVar, creaVar, arregloConTam, parteIzAsig;
 //non terminal nuevoLenguaje, funciones, tipoVar, creaVar, arregloConTam, parteIzAsig;
+
 ////// precedencia ///////
 
 precedence left PLUS, MINUS;
 precedence left TIMES, DIV;
+precedence left POWER, MODULE;
 
 ////// producción de inicio ///////
 
@@ -59,7 +60,7 @@ start with nuevoLenguaje;
 
 ////// producciones de la gramática ///////
 
-nuevoLenguaje ::= tipoVar; 
+nuevoLenguaje ::= funciones; 
 
 // creación de variables 
 tipoVar ::=   INT   
@@ -68,10 +69,9 @@ tipoVar ::=   INT
             | STRING  
             | BOOLEAN ;
 
-/* 
-creaVar ::= (tipoVar:tip ID:id {:System.out.println(tip); System.out.println(id);:}
-            | arregloConTam) 
-            FINEXP ; 
+
+creaVar ::= tipoVar ID FINEXP {:System.out.println("Encontró creaVar"); :}
+            | arregloConTam FINEXP ; 
 
 // asignación de variables 
 parteIzAsig ::= tipoVar ID 
@@ -85,8 +85,7 @@ parteDAsig ::= datosSimples
                | operacionesAritmeticas 
                | obtEleArreglo 
                | llamaFunc 
-               | asigArregloConTam 
-               | asigArregloSinTam 
+               | asigArreglo 
                | input ;
 
 //asignaión             
@@ -152,19 +151,17 @@ operaciones ::= operacionesAritmeticas
                 | operacionesLogicas 
                 | operacionesRelacionales ;
 
-////// arreglos estáticos ///////  falta arreglar **********************
+////// arreglos estáticos /////// 
 
-tipoArreglo ::= INT | CHAR;
-
-tamArreglo ::= ENTERO_POSITIVO; 
-arregloConTam ::= tipoArreglo ID LPARENT_CUAD tamArreglo RPARENT_CUAD;
-arregloSinTam ::= tipoArreglo ID LPARENT_CUAD RPARENT_CUAD;
-eleNumEnt ::= ENTERO COMA eleNumEnt | ENTERO;
-//eleCharP ::= . ;
-eleCharS ::= letra COMA eleCharS | letra ;
-asigArregloConTam ::= INIBLOQUE (eleNumEnt{tamArreglo} | '\"'eleCharP{tamArreglo}'\"' | eleCharS{tamArreglo}) FINBLOQUE FINEXP;
-//asigArregloSinTam ::= INIBLOQUE (eleNumEnt* | eleCharS*) FINBLOQUE FINEXP;
-obtEleArreglo ::= ID LPARENT_CUAD tamArreglo RPARENT_CUAD;
+tipoArreglo ::= INT | CHAR ;
+tamArreglo ::= ENTERO_POSITIVO ; 
+arregloConTam ::= tipoArreglo ID LPARENT_CUAD tamArreglo RPARENT_CUAD ;
+arregloSinTam ::= tipoArreglo ID LPARENT_CUAD RPARENT_CUAD ;  
+eleNumEnt ::= ENTERO COMA eleNumEnt | ENTERO ;
+eleChar ::= LETRA COMA eleChar | LETRA ;
+elementosArreglo ::= eleNumEnt | eleChar ;
+asigArreglo ::= INIBLOQUE elementosArreglo FINBLOQUE FINEXP ;
+obtEleArreglo ::= ID LPARENT_CUAD tamArreglo RPARENT_CUAD ;
 
 ////// funciones ///////
 
@@ -187,7 +184,8 @@ parametro ::= tipoVar ID
               | arregloConTam 
               | arregloSinTam ;
 
-parametros ::= LPARENT (parametro | parametro COMA parametros) RPARENT 
+parametros ::= LPARENT parametro RPARENT 
+               | LPARENT parametro COMA parametros RPARENT 
                | LPARENT RPARENT ;
 
 // Bloques de funciones
@@ -213,12 +211,11 @@ llamaFunc ::= ID parametros FINEXP ;
 
 // Return de funciones
 return1 ::= RETURN ID FINEXP ;
-return1 ::= RETURN (ENTERO 
-                   | DECIMAL 
-                   | CHAR 
-                   | CADENA 
-                   | BOOLEAN) 
-                   FINEXP ;
+return1 ::= RETURN ENTERO  FINEXP 
+            | RETURN DECIMAL FINEXP 
+            | RETURN  CHAR FINEXP 
+            | RETURN CADENA FINEXP 
+            | RETURN BOOLEAN FINEXP ;
 
 return1 ::= RETURN llamaFunc ;
 return1 ::= RETURN operaciones FINEXP ;
@@ -262,8 +259,12 @@ output ::= escribeInt
            | escribeFloat 
            | escribeString ;
 
-escribeInt ::= PRINT_INT LPARENT (ID | ENTERO) RPARENT FINEXP ;
-escribeFloat ::= PRINT_FLOAT LPARENT (ID | DECIMAL) RPARENT FINEXP ;
-escribeString ::= PRINT_STRING LPARENT (ID | cadena) RPARENT FINEXP ;
+escribeInt ::= PRINT_INT LPARENT ID RPARENT FINEXP 
+               | PRINT_INT LPARENT ENTERO RPARENT FINEXP ;
 
- */
+escribeFloat ::= PRINT_FLOAT LPARENT ID RPARENT FINEXP 
+                 | PRINT_FLOAT LPARENT DECIMAL RPARENT FINEXP ;
+
+escribeString ::= PRINT_STRING LPARENT ID RPARENT FINEXP 
+                  | PRINT_STRING LPARENT CADENA RPARENT FINEXP ;
+                  
