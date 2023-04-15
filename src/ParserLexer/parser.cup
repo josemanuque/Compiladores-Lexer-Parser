@@ -1,16 +1,29 @@
 package ParserLexer;
 import java_cup.runtime.*;
+import java.util.Stack;
 
 // Aquí va la gramática BNF que hicimos solo que se pone con ::= en vez de la flecha 
 // También se declaran los terminales y los no terminales por medio de los símbolos y las producciones
 
 parser code {:
     Lexer lex;
+    private Stack<SymbolTable> symbolTableStack = new Stack<>();
+    private SymbolTable currentTable;
 
     @SuppressWarnings("deprecation")
     public parser(Lexer lex){
         this.lex = lex;
         this.symbolFactory = new DefaultSymbolFactory();
+        this.currentTable = lex.getSymbolTable();
+    }
+
+    private void pushSymbolTable() {
+        SymbolTable newTable = new SymbolTable(currentTable);
+        symbolTableStack.push(currentTable);
+        currentTable = newTable;
+    }
+    private void popSymbolTable() {
+        currentTable = symbolTableStack.pop();
     }
 :}
 
@@ -68,9 +81,8 @@ start with nuevoLenguaje;
 nuevoLenguaje ::= tipoVar;
 
 // creación de variables 
-tipoVar ::=   INT {: System.out.println("int"); :}
+tipoVar ::=  INT  {: System.out.println("Encontré int"); :}
             | FLOAT {: System.out.println("float"); :} 
             | CHAR {: System.out.println("char"); :}  
             | STRING {: System.out.println("string"); :} 
             | BOOLEAN {: System.out.println("boolean"); :} ;
-
