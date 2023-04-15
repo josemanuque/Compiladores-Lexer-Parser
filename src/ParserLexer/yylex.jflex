@@ -1,3 +1,4 @@
+package ParserLexer;
 import java_cup.runtime.*;
 
 %%
