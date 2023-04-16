@@ -48,6 +48,7 @@ ComentarioDocumentacion     = "/_" ((\.|\n)*?) "_/"
 
 ////// Reg Exp ///////
 
+Letra               = [a-zA-Z]
 Id                  = [a-zA-Z_] [a-zA-Z0-9_]*
 NumEntero           = ([+-]  [1-9] [0-9]*) | ([1-9] [0-9]*) | 0
 NumEnteroPositivo   = [1-9] [0-9]*
@@ -105,8 +106,7 @@ NumDecimal          = [0-9]+\.[0-9]+
 
 
 <YYINITIAL> {
-    ////// Identificador ///////
-    {Id} {return symbol(sym.ID, yytext());}
+    
     
     ////// Literales ///////
     {NumEnteroPositivo}  {return symbol(sym.ENTERO_POSITIVO, Integer.parseInt(yytext()));}
@@ -116,6 +116,8 @@ NumDecimal          = [0-9]+\.[0-9]+
 
     ////// Operadores ///////
 
+
+    "!"   {return symbol(sym.EXCLAMACION);}
     "="   {return symbol(sym.EQUIV);}
     "=="  {return symbol(sym.DEQUIV);} // DEQUIV  de doble equiv
     "+"   {return symbol(sym.PLUS);}
@@ -140,14 +142,15 @@ NumDecimal          = [0-9]+\.[0-9]+
     "{"   {return symbol(sym.INIBLOQUE);}
     "}"   {return symbol(sym.FINBLOQUE);}
 
-
     ////// Extras ///////
 
     "$"     {return symbol(sym.FINEXP);}
     ","     {return symbol(sym.COMA);}
     <<EOF>> { return symbol(sym.EOF);}
 
-
+    //{Letra} {return symbol(sym.CARACTER, yytext());}
+    ////// Identificador ///////
+    {Id} {return symbol(sym.ID, yytext());}
     ////// Ignorar ///////
 
     {EspacioBlanco}  { /* Ignorar */ }

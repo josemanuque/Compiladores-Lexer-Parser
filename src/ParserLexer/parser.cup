@@ -34,7 +34,7 @@ terminal READ_INT, READ_FLOAT, PRINT_INT, PRINT_FLOAT, PRINT_STRING;
 // Operadores
 terminal PLUS, MINUS, TIMES, DIV;
 terminal POWER, MODULE, PLUS_UN, MINUS_UN;
-terminal AND, OR, NOT;
+terminal AND, OR, NOT, EXCLAMACION;
 terminal MAYOR_QUE, MAYOR_IGUAL, MENOR_QUE, MENOR_IGUAL, DEQUIV, DIF;
 
 // Miscelaneos
@@ -42,7 +42,7 @@ terminal EQUIV, LPARENT, RPARENT, LPARENT_CUAD, RPARENT_CUAD;
 terminal INIBLOQUE, FINBLOQUE, COMA, FINEXP;
 
 // Literales
-terminal ENTERO, DECIMAL, CADENA, ENTERO_POSITIVO;
+terminal ENTERO, DECIMAL, CADENA, ENTERO_POSITIVO, CARACTER;
 
 // Identificadores
 terminal ID;
@@ -50,6 +50,15 @@ terminal ID;
 
 ////// NO Terminales ///////  
 non terminal nuevoLenguaje, tipoVar;
+non terminal funciones, funcion, funcionMain, tipoRet, bloque;
+non terminal parametros, parametro, sentencias, sentencia;
+non terminal creaVar, asignacion, creaAsignaVar;
+non terminal llamaFunc, parametrosLlamada, parametroLlamada;
+non terminal literal;
+non terminal input, leeInt, leeFloat, output, escribeInt, escribeFloat, escribeString;
+non terminal operacion, operacionAritmetica, operadorArit, operandoArit;
+non terminal operacionLogica, operadorLog, operandoLog, negacion;
+non terminal operacionRelacional, operadorRel, operandoRel;
 
 //non terminal nuevoLenguaje, funciones, tipoVar, creaVar, arregloConTam, parteIzAsig;
 //non terminal nuevoLenguaje, funciones, tipoVar, creaVar, arregloConTam, parteIzAsig;
@@ -65,12 +74,139 @@ start with nuevoLenguaje;
 
 ////// producciones de la gramática ///////
 
-nuevoLenguaje ::= tipoVar;
+nuevoLenguaje ::=       funcionMain {: System.out.println("Funcion main"); :}
+                    |   funcionMain funciones;
+
+
+funcionMain ::= INT MAIN LPARENT RPARENT INIBLOQUE bloque FINBLOQUE;
+
+funciones ::=       funcion
+                |   funciones funcion;
+
+funcion ::=         tipoRet ID LPARENT parametros RPARENT INIBLOQUE bloque FINBLOQUE
+                |   tipoRet ID LPARENT RPARENT INIBLOQUE bloque FINBLOQUE;
+
+
+tipoRet ::=     INT 
+            |   FLOAT
+            |   BOOLEAN;
+
+parametros ::=      parametro
+                |   parametro COMA parametros;
+
+parametro ::= tipoVar ID;
+// faltan algunos en parametro
 
 // creación de variables 
-tipoVar ::=   INT {: System.out.println("int"); :}
-            | FLOAT {: System.out.println("float"); :} 
-            | CHAR {: System.out.println("char"); :}  
-            | STRING {: System.out.println("string"); :} 
-            | BOOLEAN {: System.out.println("boolean"); :} ;
+tipoVar ::=   INT {: System.out.println("Tipo int"); :}
+            | FLOAT {: System.out.println("Tipo float"); :} 
+            | CHAR {: System.out.println("Tipo char"); :}  
+            | STRING {: System.out.println("Tipo string"); :} 
+            | BOOLEAN {: System.out.println("Tipo boolean"); :} ;
 
+bloque ::= sentencias;
+
+sentencias ::=      sentencia
+                |   sentencia sentencias;
+
+sentencia ::=       creaVar
+                |   asignacion
+                |   llamaFunc
+                |   output;
+
+// faltan los arreglos
+creaVar ::= tipoVar ID FINEXP;
+
+asignacion ::=      creaAsignaVar FINEXP
+                |   ID EQUIV literal FINEXP
+                |   ID EQUIV llamaFunc FINEXP
+                |   ID EQUIV input FINEXP;
+
+creaAsignaVar ::=   tipoVar ID EQUIV literal
+                |   tipoVar ID EQUIV llamaFunc
+                |   tipoVar ID EQUIV input;
+
+                //|   tipoVar ID EQUIV arreglo FINEXP
+                //|   tipoVar ID EQUIV arregloConTam FINEXP
+
+literal ::=     operacion
+    // operacion contiene operando aritmetico que a su vez contiene entero, decimal, id
+            |   CADENA
+            |   CARACTER;
+
+
+operacion ::=       operacionAritmetica
+                |   operacionLogica;
+
+operacionAritmetica ::=     operandoArit
+                        |   operacionAritmetica operadorArit operandoArit
+                        |   LPARENT operacionAritmetica RPARENT;
+
+operadorArit ::=    PLUS
+                |   MINUS
+                |   TIMES
+                |   DIV
+                |   POWER
+                |   MODULE;
+
+operandoArit ::=        ENTERO
+                    |   DECIMAL
+                    |   ID;
+
+
+operacionRelacional ::=     operacionAritmetica operadorRel operacionAritmetica;
+
+operadorRel ::=     MAYOR_QUE
+                |   MAYOR_IGUAL
+                |   MENOR_QUE
+                |   MENOR_IGUAL
+                |   DEQUIV
+                |   DIF;
+
+operacionLogica ::=     operandoLog
+                    |   operacionRelacional
+                    |   operandoArit operadorLog operandoArit
+                    |   operacionLogica operadorLog operacionLogica
+                    |   LPARENT operacionLogica RPARENT
+                    |   negacion operacionLogica;
+
+operandoLog ::=     TRUE
+                |   FALSE;
+
+opLogico ::=    AND
+            |   OR;
+
+
+negacion ::=        NOT
+                |   EXCLAMACION;
+
+
+llamaFunc ::= ID LPARENT parametrosLlamada RPARENT FINEXP;
+
+
+parametrosLlamada ::=       parametroLlamada
+                        |   parametroLlamada COMA parametrosLlamada;
+
+parametroLlamada ::=    literal;
+////// I/O ///////
+
+// Input
+input ::=       leeInt 
+            |   leeFloat;
+leeInt ::= READ_INT LPARENT RPARENT FINEXP;
+leeFloat ::= READ_FLOAT LPARENT RPARENT FINEXP;
+
+// Output
+output ::=      escribeInt 
+            |   escribeFloat
+            |   escribeString;
+        
+escribeInt ::=      PRINT_INT LPARENT ID RPARENT FINEXP
+                |   PRINT_INT LPARENT ENTERO RPARENT FINEXP;
+
+
+escribeFloat ::=    PRINT_FLOAT LPARENT ID RPARENT FINEXP
+                |   PRINT_FLOAT LPARENT DECIMAL RPARENT FINEXP;
+
+escribeString ::= PRINT_STRING LPARENT ID RPARENT FINEXP
+                | PRINT_STRING LPARENT CADENA RPARENT FINEXP;
