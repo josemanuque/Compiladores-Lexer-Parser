@@ -23,7 +23,6 @@ import java_cup.runtime.*;
 %{
    //Código de usuario
     StringBuffer string = new StringBuffer(); // para manejar los strings
-    private SymbolTable symbolTable = new SymbolTable(null); // Tabla de símbolos
 
     private Symbol symbol(int type) {
         return new Symbol(type, yyline+1, yycolumn+1);
@@ -33,9 +32,6 @@ import java_cup.runtime.*;
         return new Symbol(type, yyline+1, yycolumn+1, value);
     }
 
-    public SymbolTable getSymbolTable(){
-        return this.symbolTable;
-    }
 %}
 
 LineTerminator = \r|\n|\r\n
@@ -53,6 +49,7 @@ ComentarioDocumentacion     = "/_" ((\.|\n)*?) "_/"
 
 ////// Reg Exp ///////
 
+Letra               = [a-zA-Z]
 Id                  = [a-zA-Z_] [a-zA-Z0-9_]*
 NumEntero           = [+-] [1-9] [0-9]* | [1-9][0-9]* | 0
 NumEnteroPositivo   = [1-9][0-9]*
@@ -75,15 +72,15 @@ NumDecimal          = [0-9]+\.[0-9]+
 
 ////// Palabras reservadas ///////
 // tipos de datos
-<YYINITIAL> "int"     {return symbol(sym.INT);}
-<YYINITIAL> "float"   {return symbol(sym.FLOAT);}
-<YYINITIAL> "char"    {return symbol(sym.CHAR);}
-<YYINITIAL> "string"  {return symbol(sym.STRING);}
-<YYINITIAL> "boolean" {return symbol(sym.BOOLEAN);}
+<YYINITIAL> "int"     {return symbol(sym.INT, yytext());}
+<YYINITIAL> "float"   {return symbol(sym.FLOAT, yytext());}
+<YYINITIAL> "char"    {return symbol(sym.CHAR,  yytext());}
+<YYINITIAL> "string"  {return symbol(sym.STRING,  yytext());}
+<YYINITIAL> "boolean" {return symbol(sym.BOOLEAN,  yytext());}
 
 // operadores lógicos
-<YYINITIAL> "true"    {return symbol(sym.TRUE);}
-<YYINITIAL> "false"   {return symbol(sym.FALSE);}
+<YYINITIAL> "true"    {return symbol(sym.TRUE,  yytext());}
+<YYINITIAL> "false"   {return symbol(sym.FALSE,  yytext());}
 
 // funciones
 <YYINITIAL> "return"  {return symbol(sym.RETURN);}
@@ -99,18 +96,18 @@ NumDecimal          = [0-9]+\.[0-9]+
 <YYINITIAL> "break"   {return symbol(sym.BREAK);}
 
 // I/O
-<YYINITIAL> "readInt"     {return symbol(sym.READ_INT);}
-<YYINITIAL> "readFloat"   {return symbol(sym.READ_FLOAT);}
-<YYINITIAL> "printInt"    {return symbol(sym.PRINT_INT);}
-<YYINITIAL> "printFloat"  {return symbol(sym.PRINT_FLOAT);}
-<YYINITIAL> "printString" {return symbol(sym.PRINT_STRING);}
+<YYINITIAL> "readInt"     {return symbol(sym.READ_INT, yytext());}
+<YYINITIAL> "readFloat"   {return symbol(sym.READ_FLOAT, yytext());}
+<YYINITIAL> "printInt"    {return symbol(sym.PRINT_INT, yytext());}
+<YYINITIAL> "printFloat"  {return symbol(sym.PRINT_FLOAT, yytext());}
+<YYINITIAL> "printString" {return symbol(sym.PRINT_STRING, yytext());}
 
 // Operador
 <YYINITIAL> "not" {return symbol(sym.NOT);}
 
 
 <YYINITIAL> {
-    
+
     ////// Literales ///////
     {NumEntero}  {return symbol(sym.ENTERO, Integer.parseInt(yytext()));}
     {NumDecimal} {return symbol(sym.DECIMAL, new Float(yytext().substring(0,yylength()-1)));}
@@ -119,16 +116,18 @@ NumDecimal          = [0-9]+\.[0-9]+
 
     ////// Operadores ///////
 
+
+    "!"   {return symbol(sym.EXCLAMACION);}
     "="   {return symbol(sym.EQUIV);}
     "=="  {return symbol(sym.DEQUIV);} // DEQUIV  de doble equiv
-    "+"   {return symbol(sym.PLUS);}
-    "-"   {return symbol(sym.MINUS);}
-    "*"   {return symbol(sym.TIMES);}
-    "/"   {return symbol(sym.DIV);}
-    "**"  {return symbol(sym.POWER);}
-    "~"   {return symbol(sym.MODULE);}
-    "--"  {return symbol(sym.MINUS_UN);} // UN de unario
-    "++"  {return symbol(sym.PLUS_UN);}  // UN de unario
+    "+"   {return symbol(sym.PLUS, yytext());}
+    "-"   {return symbol(sym.MINUS, yytext());}
+    "*"   {return symbol(sym.TIMES, yytext());}
+    "/"   {return symbol(sym.DIV, yytext());}
+    "**"  {return symbol(sym.POWER, yytext());}
+    "~"   {return symbol(sym.MODULE, yytext());}
+    "--"  {return symbol(sym.MINUS_UN, yytext());} // UN de unario
+    "++"  {return symbol(sym.PLUS_UN, yytext());}  // UN de unario
     ">"   {return symbol(sym.MAYOR_QUE);}
     ">="  {return symbol(sym.MAYOR_IGUAL);}
     "<"   {return symbol(sym.MENOR_QUE);}
@@ -143,30 +142,28 @@ NumDecimal          = [0-9]+\.[0-9]+
     "{"   {return symbol(sym.INIBLOQUE);}
     "}"   {return symbol(sym.FINBLOQUE);}
 
-
     ////// Extras ///////
 
     "$"     {return symbol(sym.FINEXP);}
     ","     {return symbol(sym.COMA);}
     <<EOF>> { return symbol(sym.EOF);}
 
-
-    ////// Ignorar ///////
+    //{Letra} {return symbol(sym.CARACTER, yytext());}
 
     {EspacioBlanco}  { /* Ignorar */ }
     {Comentario}     { /* Ignorar */ }
 
     ////// Identificador ///////
-    {Id} /*{
-        Object value = symbolTable.get(yytext());
+    {Id} {
+        /*Object value = symbolTable.get(yytext());
         if (value == null) {
-            //El símbolo no está en la tabla actual
-            value = "undefined";
+            return new Symbol(sym.ID, yytext());
         }
         // Retorne un nuevo símbolo
-        return new Symbol(sym.ID, value);
-    }*/
-    {return symbol(sym.ID, yytext());}
+        return new Symbol(sym.ID, value);*/
+        return new Symbol(sym.ID, yytext());
+    }
+
 }
 
 /*Esto es para el manejo de errores.

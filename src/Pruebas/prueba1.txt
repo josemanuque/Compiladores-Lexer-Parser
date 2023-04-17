@@ -1,1 +1,9 @@
-int
+int main(){
+    funcion()$
+}
+
+int funcion(int a, int b, int c){
+    a = 0 + 2 - 3$
+    b = 1$
+    c = 7$
+}

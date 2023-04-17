@@ -15,12 +15,13 @@ public class SymbolTable {
     }
 
     public Object get(String key) {
-        //System.out.println(key);
+        System.out.println("Estoy buscando el key: "+key+" en la tabla de símbolos actual");
         Object value = symbols.get(key);
 
         if (value == null && parentTable != null) {
             value = parentTable.get(key);
         }
+        //System.out.println(value);
         return value;
     }
 }

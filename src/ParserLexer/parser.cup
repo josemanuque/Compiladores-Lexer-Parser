@@ -1,29 +1,29 @@
 package ParserLexer;
 import java_cup.runtime.*;
-import java.util.Stack;
+import java.util.*;
 
 // Aquí va la gramática BNF que hicimos solo que se pone con ::= en vez de la flecha 
 // También se declaran los terminales y los no terminales por medio de los símbolos y las producciones
 
 parser code {:
     Lexer lex;
+    private SymbolTable currentTable = new SymbolTable(null); // Tabla de símbolos
     private Stack<SymbolTable> symbolTableStack = new Stack<>();
-    private SymbolTable currentTable;
+    List<String> listaParams = new ArrayList<String>(); 
 
     @SuppressWarnings("deprecation")
     public parser(Lexer lex){
         this.lex = lex;
         this.symbolFactory = new DefaultSymbolFactory();
-        this.currentTable = lex.getSymbolTable();
     }
 
     private void pushSymbolTable() {
-        SymbolTable newTable = new SymbolTable(currentTable);
-        symbolTableStack.push(currentTable);
-        currentTable = newTable;
+        SymbolTable newTable = new SymbolTable(this.currentTable);
+        symbolTableStack.push(this.currentTable);
+        this.currentTable = newTable;
     }
     private void popSymbolTable() {
-        currentTable = symbolTableStack.pop();
+        this.currentTable = symbolTableStack.pop();
     }
 :}
 
@@ -47,7 +47,7 @@ terminal READ_INT, READ_FLOAT, PRINT_INT, PRINT_FLOAT, PRINT_STRING;
 // Operadores
 terminal PLUS, MINUS, TIMES, DIV;
 terminal POWER, MODULE, PLUS_UN, MINUS_UN;
-terminal AND, OR, NOT;
+terminal AND, OR, NOT, EXCLAMACION;
 terminal MAYOR_QUE, MAYOR_IGUAL, MENOR_QUE, MENOR_IGUAL, DEQUIV, DIF;
 
 // Miscelaneos
@@ -55,7 +55,7 @@ terminal EQUIV, LPARENT, RPARENT, LPARENT_CUAD, RPARENT_CUAD;
 terminal INIBLOQUE, FINBLOQUE, COMA, FINEXP;
 
 // Literales
-terminal ENTERO, DECIMAL, CADENA, ENTERO_POSITIVO;
+terminal ENTERO, DECIMAL, CADENA, ENTERO_POSITIVO, CARACTER;
 
 // Identificadores
 terminal ID;
@@ -63,6 +63,15 @@ terminal ID;
 
 ////// NO Terminales ///////  
 non terminal nuevoLenguaje, tipoVar;
+non terminal funciones, funcion, funcionMain, tipoRet, bloque;
+non terminal parametros, parametro, sentencias, sentencia;
+non terminal creaVar, asignacion, creaAsignaVar;
+non terminal llamaFunc, parametrosLlamada, parametroLlamada;
+non terminal literal;
+non terminal input, leeInt, leeFloat, output, escribeInt, escribeFloat, escribeString;
+non terminal operacion, operacionAritmetica, operadorArit, operandoArit;
+non terminal operacionLogica, operadorLog, operandoLog, negacion;
+non terminal operacionRelacional, operadorRel, operandoRel;
 
 //non terminal nuevoLenguaje, funciones, tipoVar, creaVar, arregloConTam, parteIzAsig;
 //non terminal nuevoLenguaje, funciones, tipoVar, creaVar, arregloConTam, parteIzAsig;
@@ -78,11 +87,154 @@ start with nuevoLenguaje;
 
 ////// producciones de la gramática ///////
 
-nuevoLenguaje ::= tipoVar;
+nuevoLenguaje ::=       funcionMain {: /*System.out.println("Funcion main");*/ :}
+                    |   funcionMain funciones;
+
+funcionMain ::= INT MAIN LPARENT RPARENT INIBLOQUE bloque FINBLOQUE;
+
+funciones ::=       funcion
+                |   funciones funcion;
+
+funcion ::=         tipoRet ID LPARENT parametros:lista_params RPARENT INIBLOQUE bloque FINBLOQUE 
+                    {:pushSymbolTable(); // push al stack de la tabla de símbolos
+                    for (String param : (List<String>) lista_params) { 
+                        currentTable.put(param, null); // Añade los parametros a la tabla de símbolos
+                        System.out.println("Estoy insertando "+param+" a la tabla de símbolos");
+                    } :}
+                |   tipoRet ID LPARENT RPARENT INIBLOQUE bloque FINBLOQUE;
+
+
+tipoRet ::=     INT 
+            |   FLOAT
+            |   BOOLEAN;
+
+parametros ::=      parametro:p {:RESULT = p; :}
+                |   parametro:param COMA parametros:params {: if(params == null){
+                                                                listaParams.add(param.toString());
+                                                                RESULT = listaParams;
+                                                              }
+                                                              else{
+                                                                listaParams.add(param.toString());
+                                                                listaParams.add(params.toString());
+                                                              }
+                                                              :} ;
+
+parametro ::= tipoVar ID:id {: RESULT = id; :};
+// faltan algunos en parametro
 
 // creación de variables 
-tipoVar ::=  INT  {: System.out.println("Encontré int"); :}
-            | FLOAT {: System.out.println("float"); :} 
-            | CHAR {: System.out.println("char"); :}  
-            | STRING {: System.out.println("string"); :} 
-            | BOOLEAN {: System.out.println("boolean"); :} ;
+
+tipoVar ::=   INT {: /*System.out.println("Tipo int");*/ :}
+            | FLOAT {: System.out.println("Tipo float"); :} 
+            | CHAR {: System.out.println("Tipo char"); :}  
+            | STRING {: System.out.println("Tipo string"); :} 
+            | BOOLEAN {: System.out.println("Tipo boolean"); :} ;
+
+bloque ::= sentencias;
+
+sentencias ::=      sentencia
+                |   sentencia sentencias;
+
+sentencia ::=       creaVar
+                |   asignacion
+                |   llamaFunc
+                |   output;
+
+// faltan los arreglos
+creaVar ::= tipoVar ID:id FINEXP {: currentTable.put(id.toString(), null); :};
+
+asignacion ::=      creaAsignaVar FINEXP
+                |   ID:id EQUIV literal:lit FINEXP {: currentTable.put(id.toString(), lit); System.out.println(id.toString()+"="+lit.toString()); 
+                                                      System.out.println(currentTable.get(id.toString())); :}
+                |   ID EQUIV llamaFunc FINEXP 
+                |   ID:id EQUIV input FINEXP ;
+
+creaAsignaVar ::=   tipoVar ID:id EQUIV literal:lit {: currentTable.put(id.toString(), lit); :}
+                |   tipoVar ID EQUIV llamaFunc
+                |   tipoVar ID EQUIV input ;
+
+                //|   tipoVar ID EQUIV arreglo FINEXP
+                //|   tipoVar ID EQUIV arregloConTam FINEXP
+
+literal ::=     operacion:op {: RESULT = op; :}
+    // operacion contiene operando aritmetico que a su vez contiene entero, decimal, id
+            |   CADENA:cad {: RESULT = cad; :}
+            |   CARACTER:car {: RESULT = car; :};
+
+
+operacion ::=       operacionAritmetica:opArit {: RESULT = opArit; :}
+                |   operacionLogica:opLog {: RESULT = opLog; :} ;
+
+operacionAritmetica ::=     operandoArit:operanArit {: RESULT = operanArit; :}
+                        |   operacionAritmetica:opArit operadorArit:operador operandoArit:operanArit {: RESULT = opArit.toString()+" "+operador+" "+operanArit.toString(); :}
+                        |   LPARENT operacionAritmetica:opArit RPARENT {:RESULT = opArit; :};
+
+operadorArit ::=    PLUS:plus {: RESULT = plus; :}
+                |   MINUS:minus {: RESULT = minus; :}
+                |   TIMES:times {: RESULT = times; :}
+                |   DIV:div {: RESULT = div; :}
+                |   POWER:power {: RESULT = power; :}
+                |   MODULE:module {: RESULT = module; :} ;
+
+operandoArit ::=        ENTERO:ent {: RESULT = ent; :}
+                    |   DECIMAL: dec {: RESULT = dec; :}
+                    |   ID:id {: RESULT = id; :};
+
+
+operacionRelacional ::=     operacionAritmetica operadorRel operacionAritmetica;
+
+operadorRel ::=     MAYOR_QUE
+                |   MAYOR_IGUAL
+                |   MENOR_QUE
+                |   MENOR_IGUAL
+                |   DEQUIV
+                |   DIF;
+
+operacionLogica ::=     operandoLog:opLog {: RESULT = opLog; :}
+                    |   operacionRelacional:opRel {: RESULT = opRel; :}
+                    |   operandoArit:opArit operadorLog:operador operandoArit:opArit2 /*{: RESULT = opArit.toString()+" "+operador+" "+opArit2.toString(); :}*/
+                    |   operacionLogica operadorLog operacionLogica
+                    |   LPARENT operacionLogica RPARENT
+                    |   negacion operacionLogica;
+
+operandoLog ::=     TRUE:t {: RESULT = t; :}
+                |   FALSE:f {: RESULT = f; :};
+
+opLog ::= AND
+        | OR;
+
+
+negacion ::=        NOT
+                |   EXCLAMACION;
+
+
+llamaFunc ::=   ID LPARENT parametrosLlamada RPARENT FINEXP
+              | ID LPARENT RPARENT FINEXP ;
+
+
+parametrosLlamada ::=       parametroLlamada
+                        |   parametroLlamada COMA parametrosLlamada;
+
+parametroLlamada ::=    literal;
+////// I/O ///////
+
+// Input
+input ::=       leeInt 
+            |   leeFloat;
+leeInt ::= READ_INT LPARENT RPARENT FINEXP;
+leeFloat ::= READ_FLOAT LPARENT RPARENT FINEXP;
+
+// Output
+output ::=      escribeInt 
+            |   escribeFloat
+            |   escribeString;
+        
+escribeInt ::=      PRINT_INT LPARENT ID RPARENT FINEXP
+                |   PRINT_INT LPARENT ENTERO RPARENT FINEXP;
+
+
+escribeFloat ::=    PRINT_FLOAT LPARENT ID RPARENT FINEXP
+                |   PRINT_FLOAT LPARENT DECIMAL RPARENT FINEXP;
+
+escribeString ::= PRINT_STRING LPARENT ID RPARENT FINEXP
+                | PRINT_STRING LPARENT CADENA RPARENT FINEXP;

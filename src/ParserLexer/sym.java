@@ -8,41 +8,43 @@ package ParserLexer;
 /** CUP generated class containing symbol constants. */
 public class sym {
   /* terminals */
-  public static final int LPARENT_CUAD = 43;
-  public static final int RPARENT = 42;
-  public static final int LPARENT = 41;
+  public static final int LPARENT_CUAD = 44;
+  public static final int RPARENT = 43;
+  public static final int LPARENT = 42;
   public static final int POWER = 27;
   public static final int CHAR = 3;
-  public static final int ENTERO = 49;
+  public static final int ENTERO = 50;
   public static final int PRINT_INT = 20;
   public static final int PRINT_FLOAT = 21;
   public static final int INT = 2;
-  public static final int INIBLOQUE = 45;
-  public static final int RPARENT_CUAD = 44;
+  public static final int INIBLOQUE = 46;
+  public static final int RPARENT_CUAD = 45;
   public static final int FOR = 16;
   public static final int MINUS = 24;
-  public static final int ENTERO_POSITIVO = 52;
+  public static final int ENTERO_POSITIVO = 53;
   public static final int NOT = 33;
   public static final int AND = 31;
+  public static final int CARACTER = 54;
   public static final int OR = 32;
   public static final int DIV = 26;
   public static final int PLUS = 23;
   public static final int MAIN = 10;
   public static final int IF = 11;
-  public static final int ID = 53;
-  public static final int DECIMAL = 50;
+  public static final int ID = 55;
+  public static final int EXCLAMACION = 34;
+  public static final int DECIMAL = 51;
   public static final int EOF = 0;
   public static final int BOOLEAN = 6;
   public static final int READ_FLOAT = 19;
   public static final int RETURN = 9;
   public static final int TRUE = 7;
   public static final int error = 1;
-  public static final int COMA = 47;
-  public static final int CADENA = 51;
-  public static final int DIF = 39;
-  public static final int FINBLOQUE = 46;
-  public static final int MAYOR_QUE = 34;
-  public static final int FINEXP = 48;
+  public static final int COMA = 48;
+  public static final int CADENA = 52;
+  public static final int DIF = 40;
+  public static final int FINBLOQUE = 47;
+  public static final int MAYOR_QUE = 35;
+  public static final int FINEXP = 49;
   public static final int BREAK = 17;
   public static final int MODULE = 28;
   public static final int TIMES = 25;
@@ -51,13 +53,13 @@ public class sym {
   public static final int READ_INT = 18;
   public static final int ELSE = 13;
   public static final int WHILE = 15;
-  public static final int MAYOR_IGUAL = 35;
-  public static final int EQUIV = 40;
+  public static final int MAYOR_IGUAL = 36;
+  public static final int EQUIV = 41;
   public static final int FLOAT = 5;
   public static final int STRING = 4;
-  public static final int DEQUIV = 38;
-  public static final int MENOR_QUE = 36;
-  public static final int MENOR_IGUAL = 37;
+  public static final int DEQUIV = 39;
+  public static final int MENOR_QUE = 37;
+  public static final int MENOR_IGUAL = 38;
   public static final int FALSE = 8;
   public static final int ELIF = 12;
   public static final int PRINT_STRING = 22;
@@ -97,6 +99,7 @@ public class sym {
   "AND",
   "OR",
   "NOT",
+  "EXCLAMACION",
   "MAYOR_QUE",
   "MAYOR_IGUAL",
   "MENOR_QUE",
@@ -116,6 +119,7 @@ public class sym {
   "DECIMAL",
   "CADENA",
   "ENTERO_POSITIVO",
+  "CARACTER",
   "ID"
   };
 }
