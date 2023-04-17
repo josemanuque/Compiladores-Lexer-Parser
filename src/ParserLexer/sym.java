@@ -21,16 +21,15 @@ public class sym {
   public static final int RPARENT_CUAD = 45;
   public static final int FOR = 16;
   public static final int MINUS = 24;
-  public static final int ENTERO_POSITIVO = 53;
   public static final int NOT = 33;
   public static final int AND = 31;
-  public static final int CARACTER = 54;
+  public static final int CARACTER = 53;
   public static final int OR = 32;
   public static final int DIV = 26;
   public static final int PLUS = 23;
   public static final int MAIN = 10;
   public static final int IF = 11;
-  public static final int ID = 55;
+  public static final int ID = 54;
   public static final int EXCLAMACION = 34;
   public static final int DECIMAL = 51;
   public static final int EOF = 0;
@@ -118,7 +117,6 @@ public class sym {
   "ENTERO",
   "DECIMAL",
   "CADENA",
-  "ENTERO_POSITIVO",
   "CARACTER",
   "ID"
   };

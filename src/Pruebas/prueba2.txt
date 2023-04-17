@@ -21,14 +21,17 @@ int main() {
     }
     return 0$
     @comentario
-    /_ 
+    /_a 
             comentario largo 
             codigo escrito en J++
-    _/
+    __/
     id = 1$
     int array[10] = {1,2,3,4,5,6,7,8,9,10}$
     int array2[] = {1,2}$
     array[9]= 20$
     int arrayChar[4]$
     arrayChar[0] = 'a'$
+    i = -(-id + 1 - 1)$
+    i$
+    ++i$
 }

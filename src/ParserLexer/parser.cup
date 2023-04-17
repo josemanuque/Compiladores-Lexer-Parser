@@ -42,7 +42,7 @@ terminal EQUIV, LPARENT, RPARENT, LPARENT_CUAD, RPARENT_CUAD;
 terminal INIBLOQUE, FINBLOQUE, COMA, FINEXP;
 
 // Literales
-terminal ENTERO, DECIMAL, CADENA, ENTERO_POSITIVO, CARACTER;
+terminal ENTERO, DECIMAL, CADENA, CARACTER;
 
 // Identificadores
 terminal ID;
@@ -52,7 +52,7 @@ terminal ID;
 non terminal nuevoLenguaje, tipoVar;
 non terminal funciones, funcion, funcionMain, tipoRet, bloque;
 non terminal parametros, parametro, sentencias, sentencia;
-non terminal creaVar, asignacion, creaAsignaVar;
+non terminal creaVar, asignacion, creaAsignaVar, usaVar;
 non terminal llamaFunc, parametrosLlamada, parametroLlamada, returnFunc;
 non terminal literal;
 non terminal input, leeInt, leeFloat, output, escribeInt, escribeFloat, escribeString;
@@ -63,7 +63,7 @@ non terminal control, ciclo, condicional, condIf, condsElif, condElif, condElse;
 non terminal cicloDoWhile, cicloFor, bloqueCiclo, sentenciasCiclo, sentenciaCiclo, breakCiclo;
 non terminal arregloSinTam, asignaElementoArreglo, expArreglo, cantidadArreglo; 
 non terminal asignaArreglo, asignaArreglos, tipoArreglo, creaAsignaArreglo, creaArreglo;
-non terminal tipoSubset, tipoRetAux;
+non terminal tipoSubset;
 
 //non terminal nuevoLenguaje, funciones, tipoVar, creaVar, arregloConTam, parteIzAsig;
 //non terminal nuevoLenguaje, funciones, tipoVar, creaVar, arregloConTam, parteIzAsig;
@@ -117,6 +117,7 @@ sentencias ::=      sentencia
                 |   sentencia sentencias;
 
 sentencia ::=       creaVar {:System.out.println("Sentencia Crea variable");:}
+                |   usaVar {:System.out.println("Sentencia Usa variable");:}
                 |   asignacion {:System.out.println("Sentencia Asignacion");:}
                 |   llamaFunc   {:System.out.println("Sentencia Llamada a funcion");:}
                 |   output    {:System.out.println("Sentencia Salida");:}
@@ -125,6 +126,9 @@ sentencia ::=       creaVar {:System.out.println("Sentencia Crea variable");:}
                 |   creaArreglo {:System.out.println("Sentencia Creacion de arreglo");:}
                 |   asignaArreglo {:System.out.println("Sentencia Asignacion de arreglo");:};
 
+usaVar ::=      ID FINEXP
+            |   PLUS_UN ID FINEXP
+            |   MINUS_UN ID FINEXP;
 // faltan los arreglos
 creaVar ::=     tipoVar ID:n FINEXP {:System.out.println("Variable: "+ n);:}
             |   tipoSubset ID:n FINEXP {:System.out.println("Variable: "+ n);:};
@@ -153,8 +157,11 @@ literal ::=     operacion
 operacion ::=       operacionLogica;
 
 operacionAritmetica ::=     operandoArit
+                        |   PLUS_UN operandoArit
+                        |   MINUS_UN operandoArit
                         |   operacionAritmetica operadorArit operandoArit {:System.out.println("Operacion Arit +-*/ Arit");:}
-                        |   LPARENT operacionAritmetica RPARENT {:System.out.println("Operacion Arit (Arit)");:};
+                        |   LPARENT operacionAritmetica RPARENT {:System.out.println("Operacion Arit (Arit)");:}
+                        |   MINUS operacionAritmetica {:System.out.println("Operacion Arit -Arit");:};
 
 operadorArit ::=    PLUS
                 |   MINUS
@@ -164,10 +171,10 @@ operadorArit ::=    PLUS
                 |   MODULE;
 
 operandoArit ::=        ENTERO:n {:System.out.println("Entero: "+ n);:}
-                    |   DECIMAL
-                    |   ID:n {:System.out.println("Entero: "+ n);:};
+                    |   DECIMAL:n {:System.out.println("Decimal: "+ n);:}
+                    |   ID:n {:System.out.println("ID: "+ n);:};
 
-operacionRelacional ::=     operacionAritmetica operadorRel operacionAritmetica:e2 {:System.out.println( "Operacion Arit >=<== Arit");:};
+operacionRelacional ::=     operacionAritmetica operadorRel operacionAritmetica:e2 {:System.out.println( "Operacion Relacional");:};
 
 operadorRel ::=     MAYOR_QUE {:System.out.println(">");:}
                 |   MAYOR_IGUAL {:System.out.println(">=");:}
