@@ -63,6 +63,7 @@ non terminal control, ciclo, condicional, condIf, condsElif, condElif, condElse;
 non terminal cicloDoWhile, cicloFor, bloqueCiclo, sentenciasCiclo, sentenciaCiclo, breakCiclo;
 non terminal arregloSinTam, asignaElementoArreglo, expArreglo, cantidadArreglo; 
 non terminal asignaArreglo, asignaArreglos, tipoArreglo, creaAsignaArreglo, creaArreglo;
+non terminal tipoSubset, tipoRetAux;
 
 //non terminal nuevoLenguaje, funciones, tipoVar, creaVar, arregloConTam, parteIzAsig;
 //non terminal nuevoLenguaje, funciones, tipoVar, creaVar, arregloConTam, parteIzAsig;
@@ -75,7 +76,7 @@ precedence left POWER, MODULE;
 
 precedence left AND, OR;
 precedence left NOT, EXCLAMACION;
-precedence nonassoc LPARENT, RPARENT;
+precedence left LPARENT, LPARENT_CUAD, RPARENT, RPARENT_CUAD;
 
 ////// producción de inicio ///////
 
@@ -95,8 +96,7 @@ funciones ::=       funcion {: System.out.println("funcion");:}
 funcion ::=         tipoRet ID LPARENT parametros RPARENT INIBLOQUE bloque FINBLOQUE
                 |   tipoRet ID LPARENT RPARENT INIBLOQUE bloque FINBLOQUE;
 
-
-tipoRet ::=     INT:n {: System.out.println(n + " de tipo ret");:} 
+tipoRet ::=     INT
             |   FLOAT
             |   BOOLEAN;
 
@@ -107,9 +107,7 @@ parametro ::= tipoVar ID;
 // faltan algunos en parametro
 
 // creación de variables 
-tipoVar ::=   INT:n {: System.out.println(n);:}
-            | FLOAT
-            | CHAR
+tipoVar ::=   FLOAT
             | STRING
             | BOOLEAN;
 
@@ -128,7 +126,8 @@ sentencia ::=       creaVar {:System.out.println("Sentencia Crea variable");:}
                 |   asignaArreglo {:System.out.println("Sentencia Asignacion de arreglo");:};
 
 // faltan los arreglos
-creaVar ::= tipoVar ID:n FINEXP {:System.out.println("Variable: "+ n);:};
+creaVar ::=     tipoVar ID:n FINEXP {:System.out.println("Variable: "+ n);:}
+            |   tipoSubset ID:n FINEXP {:System.out.println("Variable: "+ n);:};
 
 asignacion ::=      creaAsignaVar FINEXP
                 |   ID:n EQUIV:n2 literal:n3 FINEXP {:System.out.println("Asignacion: "+ n + " = " + n3);:}
@@ -137,7 +136,10 @@ asignacion ::=      creaAsignaVar FINEXP
 
 creaAsignaVar ::=   tipoVar ID EQUIV literal
                 |   tipoVar ID EQUIV llamaFunc
-                |   tipoVar ID EQUIV input;
+                |   tipoVar ID EQUIV input
+                |   tipoSubset ID EQUIV literal
+                |   tipoSubset ID EQUIV llamaFunc
+                |   tipoSubset ID EQUIV input;
 
                 //|   tipoVar ID EQUIV arreglo FINEXP
                 //|   tipoVar ID EQUIV arregloConTam FINEXP
@@ -267,14 +269,14 @@ returnFunc ::= RETURN literal FINEXP;
 asignaArreglo ::=       asignaElementoArreglo FINEXP
                     |   creaAsignaArreglo FINEXP;
 
-arregloSinTam ::=       tipoVar ID LPARENT_CUAD RPARENT_CUAD;
+arregloSinTam ::=       tipoSubset ID LPARENT_CUAD RPARENT_CUAD;
 
 creaArreglo ::=     tipoArreglo FINEXP;
 
 creaAsignaArreglo ::=       tipoArreglo EQUIV INIBLOQUE asignaArreglos FINBLOQUE
                         |   arregloSinTam EQUIV INIBLOQUE asignaArreglos FINBLOQUE;
 
-tipoArreglo ::=     tipoVar expArreglo;
+tipoArreglo ::=     tipoSubset expArreglo;
 
 asignaArreglos ::=       asignaArreglo
                     |   asignaArreglo COMA asignaArreglos;
@@ -285,6 +287,10 @@ asignaArreglo ::=       CARACTER
 
 cantidadArreglo ::=     ENTERO
                     |   ID;
+
+
+tipoSubset ::=      INT
+                |   CHAR;
 
 asignaElementoArreglo ::=   expArreglo EQUIV ENTERO
                         |   expArreglo EQUIV CARACTER

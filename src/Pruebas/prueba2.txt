@@ -4,31 +4,31 @@ int main() {
     mundo"$
     
     boolean abc = 1 > 2$
-    int test2$
+    char test2 = 'a'$
     if ((test + 2) > test2 # 2 + 2 >  2){
         test = "ifTest"$
-   }
-   elif(1 > 2){
-       test = "elifTest"$
-       return 1$
-   }
-   else{
-       test = "elseTest"$
-   }
-   for (int i = 0$ i < 10$ i = i + 1$){
-       test = "forTest"$
-       break$
-   }
-   return 0$
-   @comentario
-   /_ 
-        comentario largo 
-        codigo escrito en J++
-   _/
-   id = 1$
-   int array[10] = {1,2,3,4,5,6,7,8,9,10}$
-   int array2[] = {1,2}$
-   array[9]= 20$
-   char arrayChar[4]$
-   arrayChar[0] = 'a'$
+    }
+    elif(1 > 2){
+        test = "elifTest"$
+        return 1$
+    }
+    else{
+        test = "elseTest"$
+    }
+    for (int i = 0$ i < 10$ i = i + 1$){
+        test = "forTest"$
+        break$
+    }
+    return 0$
+    @comentario
+    /_ 
+            comentario largo 
+            codigo escrito en J++
+    _/
+    id = 1$
+    int array[10] = {1,2,3,4,5,6,7,8,9,10}$
+    int array2[] = {1,2}$
+    array[9]= 20$
+    int arrayChar[4]$
+    arrayChar[0] = 'a'$
 }
