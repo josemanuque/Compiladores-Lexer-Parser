@@ -66,6 +66,7 @@ NumDecimal          = [0-9]+\.[0-9]+
 
 %state CADENA 
 %state CARACTER 
+%state COMENTARIO
 
 %%
 
@@ -124,7 +125,7 @@ NumDecimal          = [0-9]+\.[0-9]+
     {NumEnteroPositivo}  {return symbol(sym.ENTERO_POSITIVO, Integer.parseInt(yytext()));}
     {NumDecimal} {return symbol(sym.DECIMAL, new Float(yytext().substring(0,yylength()-1)));}
     \" {string.setLength(0); yybegin(CADENA);}
-
+    "/_" {string.setLength(0); yybegin(COMENTARIO);}
     ////// Operadores ///////
 
 
@@ -205,6 +206,12 @@ NumDecimal          = [0-9]+\.[0-9]+
     \\              {string.append("\\"); checkChar(string);}
     [^\n\r\"\\\']   {string.append(yytext()); checkChar(string);} // Si no es un caracter especial entonces lo agrega a la variable global
     <<EOF>>         {yyerror("Char sin cierre"); return symbol(sym.EOF);}
+}
+
+<COMENTARIO>{
+    "_/"        {yybegin(YYINITIAL);}
+    [^_]*       { /* Ignorar */ }
+    <<EOF>>     {yyerror("Comentario sin cierre"); return symbol(sym.EOF);}
 }
 
 

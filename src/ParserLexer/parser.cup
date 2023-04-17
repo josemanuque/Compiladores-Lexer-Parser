@@ -61,6 +61,8 @@ non terminal operacionLogica, operadorLog, operandoLog, negacion;
 non terminal operacionRelacional, operadorRel;
 non terminal control, ciclo, condicional, condIf, condsElif, condElif, condElse;
 non terminal cicloDoWhile, cicloFor, bloqueCiclo, sentenciasCiclo, sentenciaCiclo, breakCiclo;
+non terminal arregloSinTam, asignaElementoArreglo, expArreglo, cantidadArreglo; 
+non terminal asignaArreglo, asignaArreglos, tipoArreglo, creaAsignaArreglo, creaArreglo;
 
 //non terminal nuevoLenguaje, funciones, tipoVar, creaVar, arregloConTam, parteIzAsig;
 //non terminal nuevoLenguaje, funciones, tipoVar, creaVar, arregloConTam, parteIzAsig;
@@ -74,6 +76,7 @@ precedence left POWER, MODULE;
 precedence left AND, OR;
 precedence left NOT, EXCLAMACION;
 precedence nonassoc LPARENT, RPARENT;
+
 ////// producción de inicio ///////
 
 start with nuevoLenguaje;
@@ -120,7 +123,9 @@ sentencia ::=       creaVar {:System.out.println("Sentencia Crea variable");:}
                 |   llamaFunc   {:System.out.println("Sentencia Llamada a funcion");:}
                 |   output    {:System.out.println("Sentencia Salida");:}
                 |   control {:System.out.println("Sentencia Control");:}
-                |   returnFunc {:System.out.println("Sentencia Return");:};
+                |   returnFunc {:System.out.println("Sentencia Return");:}
+                |   creaArreglo {:System.out.println("Sentencia Creacion de arreglo");:}
+                |   asignaArreglo {:System.out.println("Sentencia Asignacion de arreglo");:};
 
 // faltan los arreglos
 creaVar ::= tipoVar ID:n FINEXP {:System.out.println("Variable: "+ n);:};
@@ -255,3 +260,35 @@ sentenciaCiclo ::=      sentencia
 
 breakCiclo ::= BREAK FINEXP;
 returnFunc ::= RETURN literal FINEXP;
+
+
+// Arreglos
+
+asignaArreglo ::=       asignaElementoArreglo FINEXP
+                    |   creaAsignaArreglo FINEXP;
+
+arregloSinTam ::=       tipoVar ID LPARENT_CUAD RPARENT_CUAD;
+
+creaArreglo ::=     tipoArreglo FINEXP;
+
+creaAsignaArreglo ::=       tipoArreglo EQUIV INIBLOQUE asignaArreglos FINBLOQUE
+                        |   arregloSinTam EQUIV INIBLOQUE asignaArreglos FINBLOQUE;
+
+tipoArreglo ::=     tipoVar expArreglo;
+
+asignaArreglos ::=       asignaArreglo
+                    |   asignaArreglo COMA asignaArreglos;
+
+asignaArreglo ::=       CARACTER
+                    |   ENTERO
+                    |   ID;
+
+cantidadArreglo ::=     ENTERO
+                    |   ID;
+
+asignaElementoArreglo ::=   expArreglo EQUIV ENTERO
+                        |   expArreglo EQUIV CARACTER
+                        |   expArreglo EQUIV ID;
+
+expArreglo  ::=     ID LPARENT_CUAD cantidadArreglo RPARENT_CUAD;
+
