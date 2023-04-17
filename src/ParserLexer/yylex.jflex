@@ -31,6 +31,17 @@ import java_cup.runtime.*;
     private Symbol symbol(int type, Object value) {
         return new Symbol(type, yyline+1, yycolumn+1, value);
     }
+
+    private void yyerror(String error) {
+        System.err.println("Error Léxico: " + error + " en la línea " + (yyline+1) + " y columna " + (yycolumn+1));
+    }
+
+    private void checkChar(StringBuffer s) {
+        if (s.length() > 1){
+            yyerror("Más de un Caracter para tipo char");
+        }
+    }
+
 %}
 
 LineTerminator = \r|\n|\r\n
@@ -48,13 +59,13 @@ ComentarioDocumentacion     = "/_" ((\.|\n)*?) "_/"
 
 ////// Reg Exp ///////
 
-//Letra               = [a-zA-Z]
 Id                  = [a-zA-Z_] [a-zA-Z0-9_]*
 NumEntero           = ([+-]  [1-9] [0-9]*) | ([1-9] [0-9]*) | 0
 NumEnteroPositivo   = [1-9] [0-9]*
 NumDecimal          = [0-9]+\.[0-9]+
 
 %state CADENA 
+%state CARACTER 
 
 %%
 
@@ -148,7 +159,7 @@ NumDecimal          = [0-9]+\.[0-9]+
     ","     {return symbol(sym.COMA);}
     <<EOF>> { return symbol(sym.EOF);}
 
-    //{Letra} {return symbol(sym.CARACTER, yytext());}
+    \' {string.setLength(0); yybegin(CARACTER);}
     ////// Identificador ///////
     {Id} {return symbol(sym.ID, yytext());}
     ////// Ignorar ///////
@@ -178,8 +189,24 @@ NumDecimal          = [0-9]+\.[0-9]+
     \\[\"]            {string.append("\""); }
     \\              {string.append("\\");}
     [^\n\r\"\\]+    {string.append(yytext());} // Si no es un caracter especial entonces lo agrega a la variable global
-    
+    <<EOF>>         {yyerror("String sin cierre"); return symbol(sym.EOF);}
 }
+
+<CARACTER> {
+    /* Si encuentra un fin de cadena entonces concatenamos la comilla doble, vaciamos la variable global 
+    y que regrese al estado inicial para que siga reconociendo lexemas y que nos retorne la cadena */
+    \'              { yybegin(YYINITIAL); return symbol(sym.CARACTER, string.toString());}
+    // si reconoce un enter significa que no tiene cierre de cadena entonces es un error
+    \t              {string.append("\t"); checkChar(string);}
+    \n              {string.append("\n"); checkChar(string);} // Esto es para que imprima el enter
+    \r              {string.append("\r"); checkChar(string);}
+    \\[\"]          {string.append("\""); checkChar(string);}
+    \\[\']          {string.append("\'"); checkChar(string);}
+    \\              {string.append("\\"); checkChar(string);}
+    [^\n\r\"\\\']   {string.append(yytext()); checkChar(string);} // Si no es un caracter especial entonces lo agrega a la variable global
+    <<EOF>>         {yyerror("Char sin cierre"); return symbol(sym.EOF);}
+}
+
 
 ///// Manejo de errores
 

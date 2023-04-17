@@ -53,13 +53,14 @@ non terminal nuevoLenguaje, tipoVar;
 non terminal funciones, funcion, funcionMain, tipoRet, bloque;
 non terminal parametros, parametro, sentencias, sentencia;
 non terminal creaVar, asignacion, creaAsignaVar;
-non terminal llamaFunc, parametrosLlamada, parametroLlamada;
+non terminal llamaFunc, parametrosLlamada, parametroLlamada, returnFunc;
 non terminal literal;
 non terminal input, leeInt, leeFloat, output, escribeInt, escribeFloat, escribeString;
 non terminal operacion, operacionAritmetica, operadorArit, operandoArit;
 non terminal operacionLogica, operadorLog, operandoLog, negacion;
 non terminal operacionRelacional, operadorRel;
 non terminal control, ciclo, condicional, condIf, condsElif, condElif, condElse;
+non terminal cicloDoWhile, cicloFor, bloqueCiclo, sentenciasCiclo, sentenciaCiclo, breakCiclo;
 
 //non terminal nuevoLenguaje, funciones, tipoVar, creaVar, arregloConTam, parteIzAsig;
 //non terminal nuevoLenguaje, funciones, tipoVar, creaVar, arregloConTam, parteIzAsig;
@@ -118,7 +119,8 @@ sentencia ::=       creaVar {:System.out.println("Sentencia Crea variable");:}
                 |   asignacion {:System.out.println("Sentencia Asignacion");:}
                 |   llamaFunc   {:System.out.println("Sentencia Llamada a funcion");:}
                 |   output    {:System.out.println("Sentencia Salida");:}
-                |   control {:System.out.println("Sentencia Control");:};
+                |   control {:System.out.println("Sentencia Control");:}
+                |   returnFunc {:System.out.println("Sentencia Return");:};
 
 // faltan los arreglos
 creaVar ::= tipoVar ID:n FINEXP {:System.out.println("Variable: "+ n);:};
@@ -138,7 +140,7 @@ creaAsignaVar ::=   tipoVar ID EQUIV literal
 literal ::=     operacion
     // operacion contiene operando aritmetico que a su vez contiene entero, decimal, id
             |   CADENA:n {:System.out.println("Cadena: "+ n);:}
-            |   CARACTER;
+            |   CARACTER:n {:System.out.println("Caracter: "+ n);:};
 
 
 operacion ::=       operacionLogica;
@@ -234,3 +236,22 @@ condsElif ::= condElif
 condElif ::= ELIF LPARENT operacionLogica RPARENT INIBLOQUE bloque FINBLOQUE;
 
 condElse ::= ELSE INIBLOQUE bloque FINBLOQUE;
+
+ciclo ::= cicloDoWhile
+        | cicloFor;
+
+
+cicloDoWhile ::=    DO INIBLOQUE bloqueCiclo FINBLOQUE WHILE LPARENT operacionLogica RPARENT FINEXP;
+
+cicloFor ::= FOR LPARENT creaAsignaVar FINEXP operacionLogica FINEXP asignacion RPARENT INIBLOQUE bloqueCiclo FINBLOQUE;
+
+bloqueCiclo ::= sentenciasCiclo;
+
+sentenciasCiclo ::=     sentenciaCiclo
+                    |   sentenciaCiclo sentenciasCiclo;
+
+sentenciaCiclo ::=      sentencia
+                    |   breakCiclo;
+
+breakCiclo ::= BREAK FINEXP;
+returnFunc ::= RETURN literal FINEXP;
