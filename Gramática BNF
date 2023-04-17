@@ -23,7 +23,7 @@ numEnt ::= (signo  digitoSC digito*) | (digitoSC digito*) | cero
 numDec ::= signo? (digitoSC digito* | cero ) punto digito+ | ceroD
 num ::= numEnt | numDec
 boolean ::= true | false
-datosSimples ::= num | caracter | cadena | boolean
+literal ::= num | caracter | cadena | boolean
 
 ## Simbolos
 equiv ::= '='
@@ -37,13 +37,13 @@ comentarios ::= comentariosUnaL | comentariosMultL
 
 ############## CREACION VARIABLES ##############
 
-tipoVar ::= 'int' | 'float' | 'char' | 'string' | boolean
+tipoVar ::= 'int' | 'float' | 'char' | 'string' | 'boolean'
 creaVar ::= (tipoVar id | arregloConTam) finExp
 
 ############## ASIGNACION VARIABLES ##############
 
 parteIzAsig ::= tipoVar id | id | obtEleArreglo | arregloConTam | arregloSinTam
-parteDAsig ::= datosSimples | id | operacionesAritmeticas | obtEleArreglo | llamaFunc | asigArregloConTam | asigArregloSinTam | input
+parteDAsig ::= literal | id | operacionesAritmeticas | obtEleArreglo | llamaFunc | asigArregloConTam | asigArregloSinTam | input
 asignacion ::= parteIzAsig equiv parteDAsig finExp
 
 ############## OPERACIONES ##############
@@ -117,7 +117,7 @@ llamaFunc ::= id parametros finExp
 
 ## Return de funciones
 return ::= 'return' id finExp
-return ::= 'return' datosSimples finExp
+return ::= 'return' literal finExp
 return ::= 'return' llamaFunc
 return ::= 'return' operaciones finExp
 

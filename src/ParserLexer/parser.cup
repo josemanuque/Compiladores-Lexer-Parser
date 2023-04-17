@@ -55,7 +55,7 @@ terminal EQUIV, LPARENT, RPARENT, LPARENT_CUAD, RPARENT_CUAD;
 terminal INIBLOQUE, FINBLOQUE, COMA, FINEXP;
 
 // Literales
-terminal ENTERO, DECIMAL, CADENA, ENTERO_POSITIVO, CARACTER;
+terminal ENTERO, DECIMAL, CADENA, CARACTER;
 
 // Identificadores
 terminal ID;
@@ -65,21 +65,31 @@ terminal ID;
 non terminal nuevoLenguaje, tipoVar;
 non terminal funciones, funcion, funcionMain, tipoRet, bloque;
 non terminal parametros, parametro, sentencias, sentencia;
-non terminal creaVar, asignacion, creaAsignaVar;
-non terminal llamaFunc, parametrosLlamada, parametroLlamada;
+non terminal creaVar, asignacion, creaAsignaVar, usaVar;
+non terminal llamaFunc, parametrosLlamada, parametroLlamada, returnFunc;
 non terminal literal;
 non terminal input, leeInt, leeFloat, output, escribeInt, escribeFloat, escribeString;
 non terminal operacion, operacionAritmetica, operadorArit, operandoArit;
 non terminal operacionLogica, operadorLog, operandoLog, negacion;
-non terminal operacionRelacional, operadorRel, operandoRel;
+non terminal operacionRelacional, operadorRel;
+non terminal control, ciclo, condicional, condIf, condsElif, condElif, condElse;
+non terminal cicloDoWhile, cicloFor, bloqueCiclo, sentenciasCiclo, sentenciaCiclo, breakCiclo;
+non terminal arregloSinTam, asignaElementoArreglo, expArreglo, cantidadArreglo; 
+non terminal asignaArreglo, asignaArreglos, tipoArreglo, creaAsignaArreglo, creaArreglo;
+non terminal tipoSubset;
 
 //non terminal nuevoLenguaje, funciones, tipoVar, creaVar, arregloConTam, parteIzAsig;
 //non terminal nuevoLenguaje, funciones, tipoVar, creaVar, arregloConTam, parteIzAsig;
 //non terminal nuevoLenguaje, funciones, tipoVar, creaVar, arregloConTam, parteIzAsig;
 
 ////// precedencia ///////
+precedence left PLUS, MINUS;
+precedence left TIMES, DIV;
+precedence left POWER, MODULE;
 
-
+precedence left AND, OR;
+precedence left NOT, EXCLAMACION;
+precedence left LPARENT, LPARENT_CUAD, RPARENT, RPARENT_CUAD;
 
 ////// producción de inicio ///////
 
@@ -87,129 +97,126 @@ start with nuevoLenguaje;
 
 ////// producciones de la gramática ///////
 
-nuevoLenguaje ::=       funcionMain {: /*System.out.println("Funcion main");*/ :}
-                    |   funcionMain funciones;
+nuevoLenguaje ::=       funcionMain {:System.out.println("Funcion main");:}
+                    |   funcionMain funciones {:System.out.println("Funciones y funcion main");:};
+
 
 funcionMain ::= INT MAIN LPARENT RPARENT INIBLOQUE bloque FINBLOQUE;
 
-funciones ::=       funcion
+funciones ::=       funcion {: System.out.println("funcion");:}
                 |   funciones funcion;
 
-funcion ::=         tipoRet ID LPARENT parametros:lista_params RPARENT INIBLOQUE bloque FINBLOQUE 
-                    {:pushSymbolTable(); // push al stack de la tabla de símbolos
-                    for (String param : (List<String>) lista_params) { 
-                        currentTable.put(param, null); // Añade los parametros a la tabla de símbolos
-                        System.out.println("Estoy insertando "+param+" a la tabla de símbolos");
-                    } :}
+funcion ::=         tipoRet ID LPARENT parametros RPARENT INIBLOQUE bloque FINBLOQUE
                 |   tipoRet ID LPARENT RPARENT INIBLOQUE bloque FINBLOQUE;
 
-
-tipoRet ::=     INT 
+tipoRet ::=     INT
             |   FLOAT
             |   BOOLEAN;
 
-parametros ::=      parametro:p {:RESULT = p; :}
-                |   parametro:param COMA parametros:params {: if(params == null){
-                                                                listaParams.add(param.toString());
-                                                                RESULT = listaParams;
-                                                              }
-                                                              else{
-                                                                listaParams.add(param.toString());
-                                                                listaParams.add(params.toString());
-                                                              }
-                                                              :} ;
+parametros ::=      parametro
+                |   parametro COMA parametros;
 
-parametro ::= tipoVar ID:id {: RESULT = id; :};
+parametro ::= tipoVar ID;
 // faltan algunos en parametro
 
 // creación de variables 
-
-tipoVar ::=   INT {: /*System.out.println("Tipo int");*/ :}
-            | FLOAT {: System.out.println("Tipo float"); :} 
-            | CHAR {: System.out.println("Tipo char"); :}  
-            | STRING {: System.out.println("Tipo string"); :} 
-            | BOOLEAN {: System.out.println("Tipo boolean"); :} ;
+tipoVar ::=   FLOAT
+            | STRING
+            | BOOLEAN;
 
 bloque ::= sentencias;
 
 sentencias ::=      sentencia
                 |   sentencia sentencias;
 
-sentencia ::=       creaVar
-                |   asignacion
-                |   llamaFunc
-                |   output;
+sentencia ::=       creaVar {:System.out.println("Sentencia Crea variable");:}
+                |   usaVar {:System.out.println("Sentencia Usa variable");:}
+                |   asignacion {:System.out.println("Sentencia Asignacion");:}
+                |   llamaFunc   {:System.out.println("Sentencia Llamada a funcion");:}
+                |   output    {:System.out.println("Sentencia Salida");:}
+                |   control {:System.out.println("Sentencia Control");:}
+                |   returnFunc {:System.out.println("Sentencia Return");:}
+                |   creaArreglo {:System.out.println("Sentencia Creacion de arreglo");:}
+                |   asignaArreglo {:System.out.println("Sentencia Asignacion de arreglo");:};
 
+usaVar ::=      ID FINEXP
+            |   PLUS_UN ID FINEXP
+            |   MINUS_UN ID FINEXP;
 // faltan los arreglos
-creaVar ::= tipoVar ID:id FINEXP {: currentTable.put(id.toString(), null); :};
+creaVar ::=     tipoVar ID:n FINEXP {:System.out.println("Variable: "+ n);:}
+            |   tipoSubset ID:n FINEXP {:System.out.println("Variable: "+ n);:};
 
 asignacion ::=      creaAsignaVar FINEXP
-                |   ID:id EQUIV literal:lit FINEXP {: currentTable.put(id.toString(), lit); System.out.println(id.toString()+"="+lit.toString()); 
-                                                      System.out.println(currentTable.get(id.toString())); :}
-                |   ID EQUIV llamaFunc FINEXP 
-                |   ID:id EQUIV input FINEXP ;
+                |   ID:n EQUIV:n2 literal:n3 FINEXP {:System.out.println("Asignacion: "+ n + " = " + n3);:}
+                |   ID:n EQUIV:n2 llamaFunc:n3 FINEXP {:System.out.println("Asignacion: "+ n + " = " + n3);:}
+                |   ID:n EQUIV:n2 input:n3 FINEXP {:System.out.println("Asignacion: "+ n + " = " + n3);:};
 
-creaAsignaVar ::=   tipoVar ID:id EQUIV literal:lit {: currentTable.put(id.toString(), lit); :}
+creaAsignaVar ::=   tipoVar ID EQUIV literal
                 |   tipoVar ID EQUIV llamaFunc
-                |   tipoVar ID EQUIV input ;
+                |   tipoVar ID EQUIV input
+                |   tipoSubset ID EQUIV literal
+                |   tipoSubset ID EQUIV llamaFunc
+                |   tipoSubset ID EQUIV input;
 
                 //|   tipoVar ID EQUIV arreglo FINEXP
                 //|   tipoVar ID EQUIV arregloConTam FINEXP
 
-literal ::=     operacion:op {: RESULT = op; :}
+literal ::=     operacion
     // operacion contiene operando aritmetico que a su vez contiene entero, decimal, id
-            |   CADENA:cad {: RESULT = cad; :}
-            |   CARACTER:car {: RESULT = car; :};
+            |   CADENA:n {:System.out.println("Cadena: "+ n);:}
+            |   CARACTER:n {:System.out.println("Caracter: "+ n);:};
 
 
-operacion ::=       operacionAritmetica:opArit {: RESULT = opArit; :}
-                |   operacionLogica:opLog {: RESULT = opLog; :} ;
+operacion ::=       operacionLogica;
 
-operacionAritmetica ::=     operandoArit:operanArit {: RESULT = operanArit; :}
-                        |   operacionAritmetica:opArit operadorArit:operador operandoArit:operanArit {: RESULT = opArit.toString()+" "+operador+" "+operanArit.toString(); :}
-                        |   LPARENT operacionAritmetica:opArit RPARENT {:RESULT = opArit; :};
+operacionAritmetica ::=     operandoArit
+                        |   PLUS_UN operandoArit
+                        |   MINUS_UN operandoArit
+                        |   operacionAritmetica operadorArit operandoArit {:System.out.println("Operacion Arit +-*/ Arit");:}
+                        |   LPARENT operacionAritmetica RPARENT {:System.out.println("Operacion Arit (Arit)");:}
+                        |   MINUS operacionAritmetica {:System.out.println("Operacion Arit -Arit");:};
 
-operadorArit ::=    PLUS:plus {: RESULT = plus; :}
-                |   MINUS:minus {: RESULT = minus; :}
-                |   TIMES:times {: RESULT = times; :}
-                |   DIV:div {: RESULT = div; :}
-                |   POWER:power {: RESULT = power; :}
-                |   MODULE:module {: RESULT = module; :} ;
+operadorArit ::=    PLUS
+                |   MINUS
+                |   TIMES
+                |   DIV
+                |   POWER
+                |   MODULE;
 
-operandoArit ::=        ENTERO:ent {: RESULT = ent; :}
-                    |   DECIMAL: dec {: RESULT = dec; :}
-                    |   ID:id {: RESULT = id; :};
+operandoArit ::=        ENTERO:n {:System.out.println("Entero: "+ n);:}
+                    |   DECIMAL:n {:System.out.println("Decimal: "+ n);:}
+                    |   ID:n {:System.out.println("ID: "+ n);:};
+
+operacionRelacional ::=     operacionAritmetica operadorRel operacionAritmetica:e2 {:System.out.println( "Operacion Relacional");:};
+
+operadorRel ::=     MAYOR_QUE {:System.out.println(">");:}
+                |   MAYOR_IGUAL {:System.out.println(">=");:}
+                |   MENOR_QUE {:System.out.println("<");:}
+                |   MENOR_IGUAL {:System.out.println("<=");:}
+                |   DEQUIV  {:System.out.println("==");:}
+                |   DIF {:System.out.println("!=");:};
+
+operacionLogica ::=     operandoLog
+                    |   operacionRelacional {:System.out.println("Operacion Rel");:}
+                    |   operacionAritmetica {:System.out.println("Operacion Arit");:}
+                    |   operacionLogica operadorLog operacionLogica {:System.out.println("Operacion Logica");:}
+                    |   LPARENT operacionLogica RPARENT  {:System.out.println("Parentesis");:} %prec LPARENT
+                    |   negacion operacionLogica; 
+
+operandoLog ::=     TRUE
+                |   FALSE;
 
 
-operacionRelacional ::=     operacionAritmetica operadorRel operacionAritmetica;
-
-operadorRel ::=     MAYOR_QUE
-                |   MAYOR_IGUAL
-                |   MENOR_QUE
-                |   MENOR_IGUAL
-                |   DEQUIV
-                |   DIF;
-
-operacionLogica ::=     operandoLog:opLog {: RESULT = opLog; :}
-                    |   operacionRelacional:opRel {: RESULT = opRel; :}
-                    |   operandoArit:opArit operadorLog:operador operandoArit:opArit2 /*{: RESULT = opArit.toString()+" "+operador+" "+opArit2.toString(); :}*/
-                    |   operacionLogica operadorLog operacionLogica
-                    |   LPARENT operacionLogica RPARENT
-                    |   negacion operacionLogica;
-
-operandoLog ::=     TRUE:t {: RESULT = t; :}
-                |   FALSE:f {: RESULT = f; :};
-
-opLog ::= AND
-        | OR;
+operadorLog ::=     AND
+                |   OR;
 
 
 negacion ::=        NOT
                 |   EXCLAMACION;
 
 
-llamaFunc ::=   ID LPARENT parametrosLlamada RPARENT FINEXP
-              | ID LPARENT RPARENT FINEXP ;
+llamaFunc ::=       ID LPARENT parametrosLlamada RPARENT FINEXP
+                |   ID LPARENT RPARENT FINEXP;
 
 
 parametrosLlamada ::=       parametroLlamada
@@ -238,3 +245,75 @@ escribeFloat ::=    PRINT_FLOAT LPARENT ID RPARENT FINEXP
 
 escribeString ::= PRINT_STRING LPARENT ID RPARENT FINEXP
                 | PRINT_STRING LPARENT CADENA RPARENT FINEXP;
+
+////// Control de flujo ///////
+
+control ::= condicional | ciclo;
+
+condicional ::= condIf condsElif condElse
+            |   condIf condsElif
+            |   condIf condElse
+            |   condIf;
+
+condIf ::= IF LPARENT operacionLogica RPARENT INIBLOQUE bloque FINBLOQUE;
+
+condsElif ::= condElif
+            | condElif condsElif;
+
+condElif ::= ELIF LPARENT operacionLogica RPARENT INIBLOQUE bloque FINBLOQUE;
+
+condElse ::= ELSE INIBLOQUE bloque FINBLOQUE;
+
+ciclo ::= cicloDoWhile
+        | cicloFor;
+
+
+cicloDoWhile ::=    DO INIBLOQUE bloqueCiclo FINBLOQUE WHILE LPARENT operacionLogica RPARENT FINEXP;
+
+cicloFor ::= FOR LPARENT creaAsignaVar FINEXP operacionLogica FINEXP asignacion RPARENT INIBLOQUE bloqueCiclo FINBLOQUE;
+
+bloqueCiclo ::= sentenciasCiclo;
+
+sentenciasCiclo ::=     sentenciaCiclo
+                    |   sentenciaCiclo sentenciasCiclo;
+
+sentenciaCiclo ::=      sentencia
+                    |   breakCiclo;
+
+breakCiclo ::= BREAK FINEXP;
+returnFunc ::= RETURN literal FINEXP;
+
+
+// Arreglos
+
+asignaArreglo ::=       asignaElementoArreglo FINEXP
+                    |   creaAsignaArreglo FINEXP;
+
+arregloSinTam ::=       tipoSubset ID LPARENT_CUAD RPARENT_CUAD;
+
+creaArreglo ::=     tipoArreglo FINEXP;
+
+creaAsignaArreglo ::=       tipoArreglo EQUIV INIBLOQUE asignaArreglos FINBLOQUE
+                        |   arregloSinTam EQUIV INIBLOQUE asignaArreglos FINBLOQUE;
+
+tipoArreglo ::=     tipoSubset expArreglo;
+
+asignaArreglos ::=       asignaArreglo
+                    |   asignaArreglo COMA asignaArreglos;
+
+asignaArreglo ::=       CARACTER
+                    |   ENTERO
+                    |   ID;
+
+cantidadArreglo ::=     ENTERO
+                    |   ID;
+
+
+tipoSubset ::=      INT
+                |   CHAR;
+
+asignaElementoArreglo ::=   expArreglo EQUIV ENTERO
+                        |   expArreglo EQUIV CARACTER
+                        |   expArreglo EQUIV ID;
+
+expArreglo  ::=     ID LPARENT_CUAD cantidadArreglo RPARENT_CUAD;
