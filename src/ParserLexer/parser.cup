@@ -58,36 +58,41 @@ non terminal literal;
 non terminal input, leeInt, leeFloat, output, escribeInt, escribeFloat, escribeString;
 non terminal operacion, operacionAritmetica, operadorArit, operandoArit;
 non terminal operacionLogica, operadorLog, operandoLog, negacion;
-non terminal operacionRelacional, operadorRel, operandoRel;
+non terminal operacionRelacional, operadorRel;
+non terminal control, ciclo, condicional, condIf, condsElif, condElif, condElse;
 
 //non terminal nuevoLenguaje, funciones, tipoVar, creaVar, arregloConTam, parteIzAsig;
 //non terminal nuevoLenguaje, funciones, tipoVar, creaVar, arregloConTam, parteIzAsig;
 //non terminal nuevoLenguaje, funciones, tipoVar, creaVar, arregloConTam, parteIzAsig;
 
 ////// precedencia ///////
+precedence left PLUS, MINUS;
+precedence left TIMES, DIV;
+precedence left POWER, MODULE;
 
-
-
+precedence left AND, OR;
+precedence left NOT, EXCLAMACION;
+precedence nonassoc LPARENT, RPARENT;
 ////// producción de inicio ///////
 
 start with nuevoLenguaje;
 
 ////// producciones de la gramática ///////
 
-nuevoLenguaje ::=       funcionMain {: System.out.println("Funcion main"); :}
-                    |   funcionMain funciones;
+nuevoLenguaje ::=       funcionMain {:System.out.println("Funcion main");:}
+                    |   funcionMain funciones {:System.out.println("Funciones y funcion main");:};
 
 
 funcionMain ::= INT MAIN LPARENT RPARENT INIBLOQUE bloque FINBLOQUE;
 
-funciones ::=       funcion
+funciones ::=       funcion {: System.out.println("funcion");:}
                 |   funciones funcion;
 
 funcion ::=         tipoRet ID LPARENT parametros RPARENT INIBLOQUE bloque FINBLOQUE
                 |   tipoRet ID LPARENT RPARENT INIBLOQUE bloque FINBLOQUE;
 
 
-tipoRet ::=     INT 
+tipoRet ::=     INT:n {: System.out.println(n + " de tipo ret");:} 
             |   FLOAT
             |   BOOLEAN;
 
@@ -98,29 +103,30 @@ parametro ::= tipoVar ID;
 // faltan algunos en parametro
 
 // creación de variables 
-tipoVar ::=   INT {: System.out.println("Tipo int"); :}
-            | FLOAT {: System.out.println("Tipo float"); :} 
-            | CHAR {: System.out.println("Tipo char"); :}  
-            | STRING {: System.out.println("Tipo string"); :} 
-            | BOOLEAN {: System.out.println("Tipo boolean"); :} ;
+tipoVar ::=   INT:n {: System.out.println(n);:}
+            | FLOAT
+            | CHAR
+            | STRING
+            | BOOLEAN;
 
 bloque ::= sentencias;
 
 sentencias ::=      sentencia
                 |   sentencia sentencias;
 
-sentencia ::=       creaVar
-                |   asignacion
-                |   llamaFunc
-                |   output;
+sentencia ::=       creaVar {:System.out.println("Sentencia Crea variable");:}
+                |   asignacion {:System.out.println("Sentencia Asignacion");:}
+                |   llamaFunc   {:System.out.println("Sentencia Llamada a funcion");:}
+                |   output    {:System.out.println("Sentencia Salida");:}
+                |   control {:System.out.println("Sentencia Control");:};
 
 // faltan los arreglos
-creaVar ::= tipoVar ID FINEXP;
+creaVar ::= tipoVar ID:n FINEXP {:System.out.println("Variable: "+ n);:};
 
 asignacion ::=      creaAsignaVar FINEXP
-                |   ID EQUIV literal FINEXP
-                |   ID EQUIV llamaFunc FINEXP
-                |   ID EQUIV input FINEXP;
+                |   ID:n EQUIV:n2 literal:n3 FINEXP {:System.out.println("Asignacion: "+ n + " = " + n3);:}
+                |   ID:n EQUIV:n2 llamaFunc:n3 FINEXP {:System.out.println("Asignacion: "+ n + " = " + n3);:}
+                |   ID:n EQUIV:n2 input:n3 FINEXP {:System.out.println("Asignacion: "+ n + " = " + n3);:};
 
 creaAsignaVar ::=   tipoVar ID EQUIV literal
                 |   tipoVar ID EQUIV llamaFunc
@@ -131,16 +137,15 @@ creaAsignaVar ::=   tipoVar ID EQUIV literal
 
 literal ::=     operacion
     // operacion contiene operando aritmetico que a su vez contiene entero, decimal, id
-            |   CADENA
+            |   CADENA:n {:System.out.println("Cadena: "+ n);:}
             |   CARACTER;
 
 
-operacion ::=       operacionAritmetica
-                |   operacionLogica;
+operacion ::=       operacionLogica;
 
 operacionAritmetica ::=     operandoArit
-                        |   operacionAritmetica operadorArit operandoArit
-                        |   LPARENT operacionAritmetica RPARENT;
+                        |   operacionAritmetica operadorArit operandoArit {:System.out.println("Operacion Arit +-*/ Arit");:}
+                        |   LPARENT operacionAritmetica RPARENT {:System.out.println("Operacion Arit (Arit)");:};
 
 operadorArit ::=    PLUS
                 |   MINUS
@@ -149,39 +154,40 @@ operadorArit ::=    PLUS
                 |   POWER
                 |   MODULE;
 
-operandoArit ::=        ENTERO
+operandoArit ::=        ENTERO:n {:System.out.println("Entero: "+ n);:}
                     |   DECIMAL
-                    |   ID;
+                    |   ID:n {:System.out.println("Entero: "+ n);:};
 
+operacionRelacional ::=     operacionAritmetica operadorRel operacionAritmetica:e2 {:System.out.println( "Operacion Arit >=<== Arit");:};
 
-operacionRelacional ::=     operacionAritmetica operadorRel operacionAritmetica;
-
-operadorRel ::=     MAYOR_QUE
-                |   MAYOR_IGUAL
-                |   MENOR_QUE
-                |   MENOR_IGUAL
-                |   DEQUIV
-                |   DIF;
+operadorRel ::=     MAYOR_QUE {:System.out.println(">");:}
+                |   MAYOR_IGUAL {:System.out.println(">=");:}
+                |   MENOR_QUE {:System.out.println("<");:}
+                |   MENOR_IGUAL {:System.out.println("<=");:}
+                |   DEQUIV  {:System.out.println("==");:}
+                |   DIF {:System.out.println("!=");:};
 
 operacionLogica ::=     operandoLog
-                    |   operacionRelacional
-                    |   operandoArit operadorLog operandoArit
-                    |   operacionLogica operadorLog operacionLogica
-                    |   LPARENT operacionLogica RPARENT
-                    |   negacion operacionLogica;
+                    |   operacionRelacional {:System.out.println("Operacion Rel");:}
+                    |   operacionAritmetica {:System.out.println("Operacion Arit");:}
+                    |   operacionLogica operadorLog operacionLogica {:System.out.println("Operacion Logica");:}
+                    |   LPARENT operacionLogica RPARENT  {:System.out.println("Parentesis");:} %prec LPARENT
+                    |   negacion operacionLogica; 
 
 operandoLog ::=     TRUE
                 |   FALSE;
 
-opLogico ::=    AND
-            |   OR;
+
+operadorLog ::=     AND
+                |   OR;
 
 
 negacion ::=        NOT
                 |   EXCLAMACION;
 
 
-llamaFunc ::= ID LPARENT parametrosLlamada RPARENT FINEXP;
+llamaFunc ::=       ID LPARENT parametrosLlamada RPARENT FINEXP
+                |   ID LPARENT RPARENT FINEXP;
 
 
 parametrosLlamada ::=       parametroLlamada
@@ -210,3 +216,21 @@ escribeFloat ::=    PRINT_FLOAT LPARENT ID RPARENT FINEXP
 
 escribeString ::= PRINT_STRING LPARENT ID RPARENT FINEXP
                 | PRINT_STRING LPARENT CADENA RPARENT FINEXP;
+
+////// Control de flujo ///////
+
+control ::= condicional | ciclo;
+
+condicional ::= condIf condsElif condElse
+            |   condIf condsElif
+            |   condIf condElse
+            |   condIf;
+
+condIf ::= IF LPARENT operacionLogica RPARENT INIBLOQUE bloque FINBLOQUE;
+
+condsElif ::= condElif
+            | condElif condsElif;
+
+condElif ::= ELIF LPARENT operacionLogica RPARENT INIBLOQUE bloque FINBLOQUE;
+
+condElse ::= ELSE INIBLOQUE bloque FINBLOQUE;

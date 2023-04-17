@@ -1,4 +1,17 @@
+int main() {
+    string test = "hola \"   
+   
+    mundo"$
 
-int main () {
-    int a$
+    boolean abc = 1 > 2$
+
+    if ((test + 2) > test2 # 2 + 2 >  2){
+        test = "if"$
+   }
+   elif(1 > 2){
+       test = "elif"$
+   }
+   else{
+       test = "else"$
+   }
 }

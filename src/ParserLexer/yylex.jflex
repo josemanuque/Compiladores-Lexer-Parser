@@ -25,7 +25,7 @@ import java_cup.runtime.*;
     StringBuffer string = new StringBuffer(); // para manejar los strings
 
     private Symbol symbol(int type) {
-        return new Symbol(type, yyline+1, yycolumn+1);
+        return new Symbol(type, yyline+1, yycolumn+1, yytext());
     }
 
     private Symbol symbol(int type, Object value) {
@@ -48,7 +48,7 @@ ComentarioDocumentacion     = "/_" ((\.|\n)*?) "_/"
 
 ////// Reg Exp ///////
 
-Letra               = [a-zA-Z]
+//Letra               = [a-zA-Z]
 Id                  = [a-zA-Z_] [a-zA-Z0-9_]*
 NumEntero           = ([+-]  [1-9] [0-9]*) | ([1-9] [0-9]*) | 0
 NumEnteroPositivo   = [1-9] [0-9]*
@@ -109,8 +109,8 @@ NumDecimal          = [0-9]+\.[0-9]+
     
     
     ////// Literales ///////
-    {NumEnteroPositivo}  {return symbol(sym.ENTERO_POSITIVO, Integer.parseInt(yytext()));}
     {NumEntero}  {return symbol(sym.ENTERO, Integer.parseInt(yytext()));}
+    {NumEnteroPositivo}  {return symbol(sym.ENTERO_POSITIVO, Integer.parseInt(yytext()));}
     {NumDecimal} {return symbol(sym.DECIMAL, new Float(yytext().substring(0,yylength()-1)));}
     \" {string.setLength(0); yybegin(CADENA);}
 
@@ -118,8 +118,8 @@ NumDecimal          = [0-9]+\.[0-9]+
 
 
     "!"   {return symbol(sym.EXCLAMACION);}
-    "="   {return symbol(sym.EQUIV);}
     "=="  {return symbol(sym.DEQUIV);} // DEQUIV  de doble equiv
+    "="   {return symbol(sym.EQUIV);}
     "+"   {return symbol(sym.PLUS);}
     "-"   {return symbol(sym.MINUS);}
     "*"   {return symbol(sym.TIMES);}
@@ -172,12 +172,13 @@ NumDecimal          = [0-9]+\.[0-9]+
     y que regrese al estado inicial para que siga reconociendo lexemas y que nos retorne la cadena */
     \"              { yybegin(YYINITIAL); return symbol(sym.CADENA, string.toString());}
     // si reconoce un enter significa que no tiene cierre de cadena entonces es un error
-    [^\n\r\"\\]+    {string.append(yytext());} // Si no es un caracter especial entonces lo agrega a la variable global
-    \\t             {string.append("\t");}
-    \\n             {string.append("\n");}
-    \\r             {string.append("\r");}
-    \\\"            {string.append("\"");}
+    \t             {string.append("\t");}
+    \n             {string.append("\n"); } // Esto es para que imprima el enter
+    \r             {string.append("\r");}
+    \\[\"]            {string.append("\""); }
     \\              {string.append("\\");}
+    [^\n\r\"\\]+    {string.append(yytext());} // Si no es un caracter especial entonces lo agrega a la variable global
+    
 }
 
 ///// Manejo de errores
