@@ -6,6 +6,7 @@
 package ParserLexer;
 
 import java_cup.runtime.*;
+import java.util.*;
 import java_cup.runtime.XMLElement;
 
 /** CUP v0.11b 20160615 (GIT 4ac7450) generated parser.
@@ -698,11 +699,23 @@ public class parser extends java_cup.runtime.lr_parser {
 
 
     Lexer lex;
+    private SymbolTable currentTable = new SymbolTable(null); // Tabla de símbolos
+    private Stack<SymbolTable> symbolTableStack = new Stack<>();
+    List<String> listaParams = new ArrayList<String>(); 
 
     @SuppressWarnings("deprecation")
     public parser(Lexer lex){
         this.lex = lex;
         this.symbolFactory = new DefaultSymbolFactory();
+    }
+
+    private void pushSymbolTable() {
+        SymbolTable newTable = new SymbolTable(this.currentTable);
+        symbolTableStack.push(this.currentTable);
+        this.currentTable = newTable;
+    }
+    private void popSymbolTable() {
+        this.currentTable = symbolTableStack.pop();
     }
 
 

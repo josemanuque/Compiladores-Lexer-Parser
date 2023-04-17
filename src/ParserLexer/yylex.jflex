@@ -59,6 +59,7 @@ ComentarioDocumentacion     = "/_" ((\.|\n)*?) "_/"
 
 ////// Reg Exp ///////
 
+
 Id                  = [a-zA-Z_] [a-zA-Z0-9_]*
 NumEntero           = ([+-]  [1-9] [0-9]*) | ([1-9] [0-9]*) | 0
 //NumEnteroPositivo   = [1-9] [0-9]*
@@ -83,15 +84,15 @@ NumDecimal          = [0-9]+\.[0-9]+
 
 ////// Palabras reservadas ///////
 // tipos de datos
-<YYINITIAL> "int"     {return symbol(sym.INT);}
-<YYINITIAL> "float"   {return symbol(sym.FLOAT);}
-<YYINITIAL> "char"    {return symbol(sym.CHAR);}
-<YYINITIAL> "string"  {return symbol(sym.STRING);}
-<YYINITIAL> "boolean" {return symbol(sym.BOOLEAN);}
+<YYINITIAL> "int"     {return symbol(sym.INT, yytext());}
+<YYINITIAL> "float"   {return symbol(sym.FLOAT, yytext());}
+<YYINITIAL> "char"    {return symbol(sym.CHAR,  yytext());}
+<YYINITIAL> "string"  {return symbol(sym.STRING,  yytext());}
+<YYINITIAL> "boolean" {return symbol(sym.BOOLEAN,  yytext());}
 
 // operadores lógicos
-<YYINITIAL> "true"    {return symbol(sym.TRUE);}
-<YYINITIAL> "false"   {return symbol(sym.FALSE);}
+<YYINITIAL> "true"    {return symbol(sym.TRUE,  yytext());}
+<YYINITIAL> "false"   {return symbol(sym.FALSE,  yytext());}
 
 // funciones
 <YYINITIAL> "return"  {return symbol(sym.RETURN);}
@@ -107,11 +108,11 @@ NumDecimal          = [0-9]+\.[0-9]+
 <YYINITIAL> "break"   {return symbol(sym.BREAK);}
 
 // I/O
-<YYINITIAL> "readInt"     {return symbol(sym.READ_INT);}
-<YYINITIAL> "readFloat"   {return symbol(sym.READ_FLOAT);}
-<YYINITIAL> "printInt"    {return symbol(sym.PRINT_INT);}
-<YYINITIAL> "printFloat"  {return symbol(sym.PRINT_FLOAT);}
-<YYINITIAL> "printString" {return symbol(sym.PRINT_STRING);}
+<YYINITIAL> "readInt"     {return symbol(sym.READ_INT, yytext());}
+<YYINITIAL> "readFloat"   {return symbol(sym.READ_FLOAT, yytext());}
+<YYINITIAL> "printInt"    {return symbol(sym.PRINT_INT, yytext());}
+<YYINITIAL> "printFloat"  {return symbol(sym.PRINT_FLOAT, yytext());}
+<YYINITIAL> "printString" {return symbol(sym.PRINT_STRING, yytext());}
 
 // Operador
 <YYINITIAL> "not" {return symbol(sym.NOT);}
@@ -130,8 +131,8 @@ NumDecimal          = [0-9]+\.[0-9]+
 
 
     "!"   {return symbol(sym.EXCLAMACION);}
-    "=="  {return symbol(sym.DEQUIV);} // DEQUIV  de doble equiv
     "="   {return symbol(sym.EQUIV);}
+    "=="  {return symbol(sym.DEQUIV);} // DEQUIV  de doble equiv
     "+"   {return symbol(sym.PLUS);}
     "-"   {return symbol(sym.MINUS);}
     "*"   {return symbol(sym.TIMES);}
