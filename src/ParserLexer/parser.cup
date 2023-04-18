@@ -77,7 +77,7 @@ terminal ID;
 non terminal nuevoLenguaje, tipoVar;
 non terminal funciones, funcion, funcionMain, tipoRet, iniFun, identifier, bloque;
 non terminal parametros, parametro, sentencias, sentencia;
-non terminal creaVar, asignacion, creaAsignaVar, usaVar, creaAsignaVarAux;
+non terminal creaVar, asignacion, creaAsignaVar, usaVar;
 non terminal llamaFunc, parametrosLlamada, parametroLlamada, returnFunc;
 non terminal literal;
 non terminal input, leeInt, leeFloat, output, escribeInt, escribeFloat, escribeString;
@@ -87,7 +87,7 @@ non terminal operacionRelacional, operadorRel;
 non terminal control, ciclo, condicional, condIf, condsElif, condElif, condElse;
 non terminal cicloDoWhile, cicloFor, bloqueCiclo, sentenciasCiclo, sentenciaCiclo, breakCiclo;
 non terminal arregloSinTam, asignaElementoArreglo, expArreglo, cantidadArreglo; 
-non terminal asignaArreglo, asignaArreglos, tipoArreglo, creaAsignaArreglo, creaArreglo;
+non terminal asignaArreglo, arregloValores, arregloValor, tipoArreglo, creaAsignaArreglo, creaArreglo;
 non terminal tipoSubset;
 
 //non terminal nuevoLenguaje, funciones, tipoVar, creaVar, arregloConTam, parteIzAsig;
@@ -258,8 +258,8 @@ negacion ::=        NOT
                 |   EXCLAMACION;
 
 
-llamaFunc ::=       ID LPARENT parametrosLlamada RPARENT FINEXP
-                |   ID LPARENT RPARENT FINEXP;
+llamaFunc ::=       ID LPARENT parametrosLlamada RPARENT
+                |   ID LPARENT RPARENT;
 
 
 parametrosLlamada ::=       parametroLlamada
@@ -336,15 +336,15 @@ arregloSinTam ::=       tipoSubset:tip ID:id LPARENT_CUAD RPARENT_CUAD {: RESULT
 
 creaArreglo ::=     tipoArreglo:tip FINEXP {: RESULT = tip.toString();:};
 
-creaAsignaArreglo ::=       tipoArreglo:tip EQUIV INIBLOQUE asignaArreglos FINBLOQUE {: RESULT = tip.toString();:}
-                        |   arregloSinTam:a EQUIV INIBLOQUE asignaArreglos FINBLOQUE {: RESULT = a.toString();:};
+creaAsignaArreglo ::=       tipoArreglo:tip EQUIV INIBLOQUE arregloValores FINBLOQUE {: RESULT = tip.toString();:}
+                        |   arregloSinTam:a EQUIV INIBLOQUE arregloValores FINBLOQUE {: RESULT = a.toString();:};
 
 tipoArreglo ::=     tipoSubset:tip expArreglo:exp {: RESULT = exp.toString()+": "+tip.toString(); :};
 
-asignaArreglos ::=      asignaArreglo
-                    |   asignaArreglo COMA asignaArreglos;
+arregloValores ::=      arregloValor
+                    |   arregloValor COMA arregloValores;
 
-asignaArreglo ::=       CARACTER
+arregloValor ::=       CARACTER
                     |   ENTERO
                     |   ID;
 
