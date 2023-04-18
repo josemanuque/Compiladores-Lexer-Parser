@@ -1,30 +1,42 @@
 package ParserLexer;
 import java_cup.runtime.*;
-import java.util.*;
+import java.util.HashMap;
+import java.util.ArrayList;
 
 // Aquí va la gramática BNF que hicimos solo que se pone con ::= en vez de la flecha 
 // También se declaran los terminales y los no terminales por medio de los símbolos y las producciones
 
+// CODIGO JAVA 
+action code {:
+    private HashMap<String, ArrayList<String>> listaTablaSimbolos = new HashMap<String, ArrayList<String>>();
+    String currentHash;
+
+    private void imprimirTablaSimbolos(){
+        for(String key: listaTablaSimbolos.keySet()){
+            System.out.println("-------------------------");
+            System.out.println("");
+            System.out.println("Tabla de símbolos: "+key);
+            System.out.println("Valores: ");
+            for(String item: listaTablaSimbolos.get(key)){
+                System.out.println(item);
+            }
+
+            System.out.println("");
+        }
+
+    }
+
+:}
+
 parser code {:
     Lexer lex;
-    private SymbolTable currentTable = new SymbolTable(null); // Tabla de símbolos
-    private Stack<SymbolTable> symbolTableStack = new Stack<>();
-    List<String> listaParams = new ArrayList<String>(); 
 
     @SuppressWarnings("deprecation")
     public parser(Lexer lex){
         this.lex = lex;
         this.symbolFactory = new DefaultSymbolFactory();
     }
-
-    private void pushSymbolTable() {
-        SymbolTable newTable = new SymbolTable(this.currentTable);
-        symbolTableStack.push(this.currentTable);
-        this.currentTable = newTable;
-    }
-    private void popSymbolTable() {
-        this.currentTable = symbolTableStack.pop();
-    }
+    
 :}
 
 init with {: :}; // define como inicializar el parser
@@ -63,9 +75,9 @@ terminal ID;
 
 ////// NO Terminales ///////  
 non terminal nuevoLenguaje, tipoVar;
-non terminal funciones, funcion, funcionMain, tipoRet, bloque;
+non terminal funciones, funcion, funcionMain, tipoRet, iniFun, identifier, bloque;
 non terminal parametros, parametro, sentencias, sentencia;
-non terminal creaVar, asignacion, creaAsignaVar, usaVar;
+non terminal creaVar, asignacion, creaAsignaVar, usaVar, creaAsignaVarAux;
 non terminal llamaFunc, parametrosLlamada, parametroLlamada, returnFunc;
 non terminal literal;
 non terminal input, leeInt, leeFloat, output, escribeInt, escribeFloat, escribeString;
@@ -97,94 +109,126 @@ start with nuevoLenguaje;
 
 ////// producciones de la gramática ///////
 
-nuevoLenguaje ::=       funcionMain {:System.out.println("Funcion main");:}
-                    |   funcionMain funciones {:System.out.println("Funciones y funcion main");:};
+nuevoLenguaje ::=       funcionMain {:System.out.println("Funcion main"); imprimirTablaSimbolos(); :}
+                    |   funcionMain funciones {:System.out.println("Funciones y funcion main"); imprimirTablaSimbolos();:} ;
 
 
-funcionMain ::= INT MAIN LPARENT RPARENT INIBLOQUE bloque FINBLOQUE;
+funcionMain ::= iniFun LPARENT RPARENT INIBLOQUE bloque FINBLOQUE ;
 
 funciones ::=       funcion {: System.out.println("funcion");:}
                 |   funciones funcion;
 
-funcion ::=         tipoRet ID LPARENT parametros RPARENT INIBLOQUE bloque FINBLOQUE
-                |   tipoRet ID LPARENT RPARENT INIBLOQUE bloque FINBLOQUE;
+funcion ::=         iniFun LPARENT parametros RPARENT INIBLOQUE bloque FINBLOQUE 
+                |   iniFun LPARENT RPARENT INIBLOQUE bloque FINBLOQUE ;
 
-tipoRet ::=     INT
-            |   FLOAT
-            |   BOOLEAN;
+tipoRet ::=     INT {: RESULT = "int";:}
+            |   FLOAT {: RESULT = "float";:}
+            |   BOOLEAN {: RESULT = "boolean";:};
+
+iniFun ::= tipoRet:tip identifier:id 
+{:
+           String tipoTabla;
+           if(id.toString().equals("main")){
+            tipoTabla = "tipo:main: "+tip.toString();
+           }
+           else{
+            tipoTabla = "tipo:funcion: "+tip.toString();
+           }
+           ArrayList<String> listaSimbolos = new ArrayList<String>();
+           currentHash = id.toString();
+           listaSimbolos.add(tipoTabla);
+           listaTablaSimbolos.put(currentHash, listaSimbolos);
+           RESULT = tip.toString()+" "+id.toString();
+
+:};
+
+identifier ::=  MAIN {: RESULT = "main";:}
+              | ID:id {: RESULT = id.toString();:} ;
 
 parametros ::=      parametro
                 |   parametro COMA parametros;
 
-parametro ::= tipoVar ID;
-// faltan algunos en parametro
+parametro ::= tipoVar:tip ID:id 
+                {: listaTablaSimbolos.get(currentHash).add("Parámetro: "+id.toString()+": "+tip.toString());:} 
+            | tipoSubset:tip ID:id
+                {: listaTablaSimbolos.get(currentHash).add("Parámetro: "+id.toString()+": "+tip.toString());:} ; 
 
 // creación de variables 
-tipoVar ::=   FLOAT
-            | STRING
-            | BOOLEAN;
+tipoVar ::=   FLOAT {: RESULT = "float";:}
+            | STRING {: RESULT = "string";:}
+            | BOOLEAN {: RESULT = "boolean";:} ;
 
 bloque ::= sentencias;
 
 sentencias ::=      sentencia
                 |   sentencia sentencias;
 
-sentencia ::=       creaVar {:System.out.println("Sentencia Crea variable");:}
+sentencia ::=       creaVar:cv FINEXP
+                    {:  System.out.println("Sentencia Crea variable"); 
+                        listaTablaSimbolos.get(currentHash).add(cv.toString()); 
+                    :}
                 |   usaVar {:System.out.println("Sentencia Usa variable");:}
-                |   asignacion {:System.out.println("Sentencia Asignacion");:}
+                |   asignacion:asign {:System.out.println("Sentencia Asignacion");
+                        if(asign != null){
+                            listaTablaSimbolos.get(currentHash).add(asign.toString());
+                        }  
+                    :}
                 |   llamaFunc   {:System.out.println("Sentencia Llamada a funcion");:}
                 |   output    {:System.out.println("Sentencia Salida");:}
                 |   control {:System.out.println("Sentencia Control");:}
                 |   returnFunc {:System.out.println("Sentencia Return");:}
-                |   creaArreglo {:System.out.println("Sentencia Creacion de arreglo");:}
-                |   asignaArreglo {:System.out.println("Sentencia Asignacion de arreglo");:};
+                |   creaArreglo:creaArr 
+                    {:System.out.println("Sentencia Creacion de arreglo");
+                      listaTablaSimbolos.get(currentHash).add(creaArr.toString()); 
+                    :}
+                |   asignaArreglo:asigArr 
+                    {:System.out.println("Sentencia Asignacion de arreglo");
+                        if(asigArr != null){
+                            listaTablaSimbolos.get(currentHash).add(asigArr.toString());
+                        }  
+                    :} ;
 
 usaVar ::=      ID FINEXP
             |   PLUS_UN ID FINEXP
             |   MINUS_UN ID FINEXP;
-// faltan los arreglos
-creaVar ::=     tipoVar ID:n FINEXP {:System.out.println("Variable: "+ n);:}
-            |   tipoSubset ID:n FINEXP {:System.out.println("Variable: "+ n);:};
 
-asignacion ::=      creaAsignaVar FINEXP
+creaVar ::=     tipoVar:tip ID:n  {: System.out.println("Variable: "+ n); RESULT = n.toString()+": "+tip.toString(); :}
+            |   tipoSubset:tip ID:n  {: System.out.println("Variable: "+ n); RESULT = n.toString()+": "+tip.toString(); :} ;
+
+asignacion ::=      creaAsignaVar:cv FINEXP {: RESULT = cv.toString(); :}
                 |   ID:n EQUIV:n2 literal:n3 FINEXP {:System.out.println("Asignacion: "+ n + " = " + n3);:}
                 |   ID:n EQUIV:n2 llamaFunc:n3 FINEXP {:System.out.println("Asignacion: "+ n + " = " + n3);:}
                 |   ID:n EQUIV:n2 input:n3 FINEXP {:System.out.println("Asignacion: "+ n + " = " + n3);:};
 
-creaAsignaVar ::=   tipoVar ID EQUIV literal
-                |   tipoVar ID EQUIV llamaFunc
-                |   tipoVar ID EQUIV input
-                |   tipoSubset ID EQUIV literal
-                |   tipoSubset ID EQUIV llamaFunc
-                |   tipoSubset ID EQUIV input;
-
+creaAsignaVar ::=    creaVar:cv EQUIV literal {: RESULT = cv.toString();:}
+                  |  creaVar:cv EQUIV llamaFunc {: RESULT = cv.toString();:}
+                  |  creaVar:cv EQUIV input {: RESULT = cv.toString();:} ; 
+ 
                 //|   tipoVar ID EQUIV arreglo FINEXP
                 //|   tipoVar ID EQUIV arregloConTam FINEXP
 
-literal ::=     operacion
-    // operacion contiene operando aritmetico que a su vez contiene entero, decimal, id
-            |   CADENA:n {:System.out.println("Cadena: "+ n);:}
-            |   CARACTER:n {:System.out.println("Caracter: "+ n);:};
+literal ::=     operacion // operacion contiene operando aritmetico que a su vez contiene entero, decimal, id
+            |   CADENA:n {:System.out.println("Cadena: "+ n); :}
+            |   CARACTER:n {:System.out.println("Caracter: "+ n); :};
 
-
-operacion ::=       operacionLogica;
+operacion ::=       operacionLogica ;
 
 operacionAritmetica ::=     operandoArit
                         |   PLUS_UN operandoArit
-                        |   MINUS_UN operandoArit
-                        |   operacionAritmetica operadorArit operandoArit {:System.out.println("Operacion Arit +-*/ Arit");:}
-                        |   LPARENT operacionAritmetica RPARENT {:System.out.println("Operacion Arit (Arit)");:}
-                        |   MINUS operacionAritmetica {:System.out.println("Operacion Arit -Arit");:};
+                        |   MINUS_UN operandoArit 
+                        |   operacionAritmetica operadorArit operacionAritmetica {:System.out.println("Operacion Arit +-*/ Arit");:}
+                        |   LPARENT operacionAritmetica RPARENT {:System.out.println("Operacion Arit (Arit)");:}                            
+                        |   MINUS operacionAritmetica {:System.out.println("Operacion Arit -Arit"); :} ;
 
-operadorArit ::=    PLUS
-                |   MINUS
-                |   TIMES
-                |   DIV
-                |   POWER
-                |   MODULE;
+operadorArit ::=    PLUS 
+                |   MINUS 
+                |   TIMES 
+                |   DIV 
+                |   POWER 
+                |   MODULE ;
 
-operandoArit ::=        ENTERO:n {:System.out.println("Entero: "+ n);:}
-                    |   DECIMAL:n {:System.out.println("Decimal: "+ n);:}
+operandoArit ::=        ENTERO:n {:System.out.println("Entero: "+ n); :}
+                    |   DECIMAL:n {:System.out.println("Decimal: "+ n); :}
                     |   ID:n {:System.out.println("ID: "+ n);:};
 
 operacionRelacional ::=     operacionAritmetica operadorRel operacionAritmetica:e2 {:System.out.println( "Operacion Relacional");:};
@@ -196,7 +240,7 @@ operadorRel ::=     MAYOR_QUE {:System.out.println(">");:}
                 |   DEQUIV  {:System.out.println("==");:}
                 |   DIF {:System.out.println("!=");:};
 
-operacionLogica ::=     operandoLog
+operacionLogica ::=     operandoLog:opLogic {: RESULT = opLogic.toString(); :}
                     |   operacionRelacional {:System.out.println("Operacion Rel");:}
                     |   operacionAritmetica {:System.out.println("Operacion Arit");:}
                     |   operacionLogica operadorLog operacionLogica {:System.out.println("Operacion Logica");:}
@@ -204,12 +248,11 @@ operacionLogica ::=     operandoLog
                     |   negacion operacionLogica; 
 
 operandoLog ::=     TRUE
-                |   FALSE;
+                |   FALSE ;
 
 
 operadorLog ::=     AND
                 |   OR;
-
 
 negacion ::=        NOT
                 |   EXCLAMACION;
@@ -287,18 +330,18 @@ returnFunc ::= RETURN literal FINEXP;
 // Arreglos
 
 asignaArreglo ::=       asignaElementoArreglo FINEXP
-                    |   creaAsignaArreglo FINEXP;
+                    |   creaAsignaArreglo:creaArr FINEXP {: RESULT = creaArr.toString();:};
 
-arregloSinTam ::=       tipoSubset ID LPARENT_CUAD RPARENT_CUAD;
+arregloSinTam ::=       tipoSubset:tip ID:id LPARENT_CUAD RPARENT_CUAD {: RESULT = id.toString()+": "+tip.toString();:};
 
-creaArreglo ::=     tipoArreglo FINEXP;
+creaArreglo ::=     tipoArreglo:tip FINEXP {: RESULT = tip.toString();:};
 
-creaAsignaArreglo ::=       tipoArreglo EQUIV INIBLOQUE asignaArreglos FINBLOQUE
-                        |   arregloSinTam EQUIV INIBLOQUE asignaArreglos FINBLOQUE;
+creaAsignaArreglo ::=       tipoArreglo:tip EQUIV INIBLOQUE asignaArreglos FINBLOQUE {: RESULT = tip.toString();:}
+                        |   arregloSinTam:a EQUIV INIBLOQUE asignaArreglos FINBLOQUE {: RESULT = a.toString();:};
 
-tipoArreglo ::=     tipoSubset expArreglo;
+tipoArreglo ::=     tipoSubset:tip expArreglo:exp {: RESULT = exp.toString()+": "+tip.toString(); :};
 
-asignaArreglos ::=       asignaArreglo
+asignaArreglos ::=      asignaArreglo
                     |   asignaArreglo COMA asignaArreglos;
 
 asignaArreglo ::=       CARACTER
@@ -309,11 +352,11 @@ cantidadArreglo ::=     ENTERO
                     |   ID;
 
 
-tipoSubset ::=      INT
-                |   CHAR;
+tipoSubset ::=      INT {: RESULT = "int"; :}
+                |   CHAR {: RESULT = "char"; :} ;
 
 asignaElementoArreglo ::=   expArreglo EQUIV ENTERO
                         |   expArreglo EQUIV CARACTER
                         |   expArreglo EQUIV ID;
 
-expArreglo  ::=     ID LPARENT_CUAD cantidadArreglo RPARENT_CUAD;
+expArreglo  ::=     ID:id LPARENT_CUAD cantidadArreglo RPARENT_CUAD {: RESULT = id.toString(); :};

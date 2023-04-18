@@ -1,9 +1,7 @@
 int main(){
-    funcion()$
+    int a = 2+(4*6)$
 }
 
-int funcion(int a, int b, int c){
-    a = 0 + 2 - 3$
-    b = 1$
-    c = 7$
+int funcion(int a){
+    int b$
 }

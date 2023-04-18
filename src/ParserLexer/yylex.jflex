@@ -127,8 +127,8 @@ NumDecimal          = [0-9]+\.[0-9]+
     {NumDecimal} {return symbol(sym.DECIMAL, new Float(yytext().substring(0,yylength()-1)));}
     \" {string.setLength(0); yybegin(CADENA);}
     "/_" {string.setLength(0); yybegin(COMENTARIO);}
-    ////// Operadores ///////
 
+    ////// Operadores ///////
 
     "!"   {return symbol(sym.EXCLAMACION);}
     "="   {return symbol(sym.EQUIV);}
@@ -162,8 +162,10 @@ NumDecimal          = [0-9]+\.[0-9]+
     <<EOF>> { return symbol(sym.EOF);}
 
     \' {string.setLength(0); yybegin(CARACTER);}
+
     ////// Identificador ///////
     {Id} {return symbol(sym.ID, yytext());}
+
     ////// Ignorar ///////
 
     {EspacioBlanco}  { /* Ignorar */ }

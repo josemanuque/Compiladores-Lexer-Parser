@@ -12,7 +12,7 @@ public class App {
         // Eliminar archivos antiguos
         Files.deleteIfExists(Paths.get(basePath + "/src/ParserLexer/sym.java"));
         Files.deleteIfExists(Paths.get(basePath + "/src/ParserLexer/Lexer.java"));
-        Files.deleteIfExists(Paths.get(basePath + "/src/ParserLexer/Parser.java"));
+        Files.deleteIfExists(Paths.get(basePath + "/src/ParserLexer/parser.java"));
 
         // Crear archivos nuevos
         main.initLexerParser(fullPathLexer, fullPathParser);
@@ -26,14 +26,13 @@ public class App {
         MainJflexCup main = new MainJflexCup();
 
         // Pruebas
-        main.lexerTest(basePath + "/src/Pruebas/prueba2.txt");
-        main.parserTest(basePath + "/src/Pruebas/prueba2.txt");
+        //main.lexerTest(basePath + "/src/Pruebas/prueba2.txt");
+        main.parserTest(basePath + "/src/Pruebas/prueba1.txt");
     }
 
     public static void main(String[] args) throws Exception{
         GenerarLexerParser();
         Thread.sleep(3000); // sleep para darle tiempo a que se generen los archivos
         PruebasLexerParser();
-        //System.out.println("Hola\n\nXD");
     }
 }
