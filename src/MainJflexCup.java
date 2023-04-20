@@ -1,6 +1,8 @@
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
 
@@ -54,4 +56,31 @@ public class MainJflexCup {
         parser parser = new parser(lexer);
         parser.parse();
     }
+
+    public void runLexer(String pathTest) {
+        try {
+            String pathLexerOutput = "src/Reports/outputLexer.txt";
+            Reader reader = new BufferedReader(new FileReader(pathTest));
+            BufferedWriter file = new BufferedWriter(new FileWriter(pathLexerOutput));
+            Lexer lexer = new Lexer(reader);
+            int i = 0;
+            Symbol token;
+            while (true){
+                token = lexer.next_token();
+                if (token.sym != 0) {
+                    System.out.println("Token " + token.sym + ", Valor: " + token.value);
+                    file.write("Token " + token.sym + ", Valor: " + token.value + "\n");
+                }
+                else {
+                    System.out.println("Cantidad de lexemas encontrados: " + i);
+                    file.close();
+                    return;
+                }
+                i++;
+            }
+        } catch (Exception e) {
+            System.err.println(pathTest + " no se pudo leer");
+        }
+    }
+
 }

@@ -26,7 +26,7 @@ public class App {
         MainJflexCup main = new MainJflexCup();
 
         // Pruebas
-        //main.lexerTest(basePath + "/src/Pruebas/prueba2.txt");
+        main.runLexer(basePath + "/src/Pruebas/prueba2.txt");
         main.parserTest(basePath + "/src/Pruebas/prueba2.txt");
     }
 

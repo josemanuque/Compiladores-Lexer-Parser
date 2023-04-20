@@ -185,7 +185,7 @@ NumDecimal          = [0-9]+\.[0-9]+
 <CADENA> {
     /* Si encuentra un fin de cadena entonces concatenamos la comilla doble, vaciamos la variable global 
     y que regrese al estado inicial para que siga reconociendo lexemas y que nos retorne la cadena */
-    \"              { yybegin(YYINITIAL); return symbol(sym.CADENA, string.toString());}
+    \"              { yybegin(YYINITIAL); return symbol(sym.CADENA, ("\"" + string.toString() + "\"")); }
     // si reconoce un enter significa que no tiene cierre de cadena entonces es un error
     \t             {string.append("\t");}
     \n             {string.append("\n"); } // Esto es para que imprima el enter
@@ -199,7 +199,7 @@ NumDecimal          = [0-9]+\.[0-9]+
 <CARACTER> {
     /* Si encuentra un fin de cadena entonces concatenamos la comilla doble, vaciamos la variable global 
     y que regrese al estado inicial para que siga reconociendo lexemas y que nos retorne la cadena */
-    \'              { yybegin(YYINITIAL); return symbol(sym.CARACTER, string.toString());}
+    \'              { yybegin(YYINITIAL); return symbol(sym.CARACTER, ("\'" +string.toString() + "\'"));}
     // si reconoce un enter significa que no tiene cierre de cadena entonces es un error
     \t              {string.append("\t"); checkChar(string);}
     \n              {string.append("\n"); checkChar(string);} // Esto es para que imprima el enter

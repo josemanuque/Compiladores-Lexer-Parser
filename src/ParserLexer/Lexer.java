@@ -1017,7 +1017,7 @@ public class Lexer implements java_cup.runtime.Scanner {
           // fall through
           case 101: break;
           case 30:
-            { yybegin(YYINITIAL); return symbol(sym.CADENA, string.toString());
+            { yybegin(YYINITIAL); return symbol(sym.CADENA, ("\"" + string.toString() + "\""));
             }
           // fall through
           case 102: break;
@@ -1047,7 +1047,7 @@ public class Lexer implements java_cup.runtime.Scanner {
           // fall through
           case 107: break;
           case 36:
-            { yybegin(YYINITIAL); return symbol(sym.CARACTER, string.toString());
+            { yybegin(YYINITIAL); return symbol(sym.CARACTER, ("\'" +string.toString() + "\'"));
             }
           // fall through
           case 108: break;

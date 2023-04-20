@@ -1,7 +1,5 @@
 int main() {
-    string test = "hola \"   
-    int test = 2$
-    mundo"$
+    string test = "hola mundo"$
     
     boolean abc = 1 > 2$
     char test2 = 'a'$
