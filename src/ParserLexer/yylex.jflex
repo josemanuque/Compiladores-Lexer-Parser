@@ -42,6 +42,13 @@ import java_cup.runtime.*;
         }
     }
 
+    public int getLine() {
+        return yyline+1;
+    }
+
+    public int getColumn() {
+        return yycolumn+1;
+    }
 %}
 
 LineTerminator = \r|\n|\r\n
@@ -193,7 +200,7 @@ NumDecimal          = [0-9]+\.[0-9]+
     \\[\"]            {string.append("\""); }
     \\              {string.append("\\");}
     [^\n\r\"\\]+    {string.append(yytext());} // Si no es un caracter especial entonces lo agrega a la variable global
-    <<EOF>>         {yyerror("String sin cierre"); return symbol(sym.EOF);}
+    <<EOF>>         {yyerror("String sin cierre"); throw new Error("String sin cierre");}
 }
 
 <CARACTER> {

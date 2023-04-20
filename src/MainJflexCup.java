@@ -81,6 +81,24 @@ public class MainJflexCup {
         } catch (Exception e) {
             System.err.println(pathTest + " no se pudo leer");
         }
+        catch (Error e) {
+            System.err.println(e.getMessage());
+        }
     }
-
+    public void runParser(String pathTest){
+        try{
+            String pathParserOutput = "src/Reports/outputParser.txt";
+            BufferedWriter file = new BufferedWriter(new FileWriter(pathParserOutput));
+            Reader inputLexer = new FileReader(pathTest);
+            Lexer lexer = new Lexer(inputLexer);
+            parser parser = new parser(lexer);
+            parser.parse();
+        }
+        catch (Exception e) {
+            System.err.println(pathTest + " no se pudo leer");
+        }
+        catch (Error e) {
+            System.err.println(e.getMessage());
+        }
+    }
 }

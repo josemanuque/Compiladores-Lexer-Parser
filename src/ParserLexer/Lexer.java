@@ -425,6 +425,13 @@ public class Lexer implements java_cup.runtime.Scanner {
         }
     }
 
+    public int getLine() {
+        return yyline+1;
+    }
+
+    public int getColumn() {
+        return yycolumn+1;
+    }
 
 
   /**
@@ -854,7 +861,7 @@ public class Lexer implements java_cup.runtime.Scanner {
             }  // fall though
             case 159: break;
             case CADENA: {
-              yyerror("String sin cierre"); return symbol(sym.EOF);
+              yyerror("String sin cierre"); throw new Error("String sin cierre");
             }  // fall though
             case 160: break;
             case CARACTER: {

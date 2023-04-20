@@ -27,7 +27,7 @@ public class App {
 
         // Pruebas
         main.runLexer(basePath + "/src/Pruebas/prueba2.txt");
-        main.parserTest(basePath + "/src/Pruebas/prueba2.txt");
+        main.runParser(basePath + "/src/Pruebas/prueba2.txt");
     }
 
     public static void main(String[] args) throws Exception{
