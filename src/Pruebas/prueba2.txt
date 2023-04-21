@@ -38,5 +38,5 @@ int test(int a, int b){
 }
 float test2(){
     float x = 1.2$
-    return x++$
+    return x++;
 }

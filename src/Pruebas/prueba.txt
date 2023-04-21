@@ -31,7 +31,7 @@ int test(int a, string c){
     array[9]= 20$
     int arrayChar[4]$
     arrayChar[0] = 'a'$
-    i = -(-id + 1 - 1)$
+    i = -(-array[9] + 1 - 1)$
     i$
     ++i$
     int id = test(1,2)$
@@ -39,5 +39,6 @@ int test(int a, string c){
 
 float test2(){
     float x = 1.2$
+    x = x + test(1,2)$
     return ++x$
 }

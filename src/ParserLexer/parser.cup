@@ -249,11 +249,9 @@ creaVar ::=     tipoVar:tip ID:n  {: RESULT = n.toString()+": "+tip.toString(); 
 
 asignacion ::=      creaAsignaVar:cv FINEXP {: RESULT = cv.toString(); :}
                 |   ID:n EQUIV:n2 literal:n3 FINEXP {::}
-                |   ID:n EQUIV:n2 llamaFunc:n3 FINEXP {::}
                 |   ID:n EQUIV:n2 input:n3 FINEXP {::};
 
 creaAsignaVar ::=    creaVar:cv EQUIV literal {: RESULT = cv.toString();:}
-                  |  creaVar:cv EQUIV llamaFunc {: RESULT = cv.toString();:}
                   |  creaVar:cv EQUIV input {: RESULT = cv.toString();:} ; 
  
                 //|   tipoVar ID EQUIV arreglo FINEXP
@@ -282,7 +280,9 @@ operadorArit ::=    PLUS
 
 operandoArit ::=        ENTERO:n {::}
                     |   DECIMAL:n {::}
-                    |   ID:n {::};
+                    |   ID:n {::}
+                    |   llamaFunc
+                    |   expArreglo;
 
 operacionRelacional ::=     operacionAritmetica operadorRel operacionAritmetica:e2 {::};
 
