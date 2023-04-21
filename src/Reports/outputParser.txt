@@ -1,0 +1,27 @@
+-------------------------
+
+Tabla de símbolos: test2
+Valores: tipo:funcion: float
+x: float
+
+-------------------------
+
+Tabla de símbolos: test
+Valores: tipo:funcion: int
+Parámetro: a: int
+Parámetro: c: string
+array: int
+array2: int
+arrayChar: int
+id: int
+
+-------------------------
+
+Tabla de símbolos: main
+Valores: tipo:main: int
+test: string
+abc: boolean
+test2: char
+id: int
+
+El archivo puede ser generado por la gramática.

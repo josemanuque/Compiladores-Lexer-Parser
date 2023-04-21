@@ -93,6 +93,27 @@ public class MainJflexCup {
             Lexer lexer = new Lexer(inputLexer);
             parser parser = new parser(lexer);
             parser.parse();
+            for(String key: parser.getTablaSimbolos().keySet()){
+                file.write("-------------------------\n");
+                file.write("\n");
+                file.write("Tabla de símbolos: "+key +"\n");
+                file.write("Valores: ");
+                for(String item: parser.getTablaSimbolos().get(key)){
+                    file.write(item + "\n");
+                }
+    
+                file.write("\n");
+            }
+        
+            if(parser.getErrores() == false){
+                System.out.println("El archivo puede ser generado por la gramática.");
+                file.write("El archivo puede ser generado por la gramática.");
+            }
+            else{
+                System.out.println("El archivo fuente tiene errores, no puede ser generado por la gramática.");
+                file.write("El archivo fuente tiene errores, no puede ser generado por la gramática.");
+            }
+            file.close();
         }
         catch (Exception e) {
             System.err.println(pathTest + " no se pudo leer");

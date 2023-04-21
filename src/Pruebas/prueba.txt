@@ -25,18 +25,19 @@ int main() {
     __/
     int id = 1$
 }
-int test(int a, int b){
+int test(int a, string c){
     int array[10] = {1,2,3,4,5,6,7,8,9,10}$
-    int array2[]$
+    int array2[] = {1,2}$
     array[9]= 20$
-    i arrayChar[4]$
+    int arrayChar[4]$
     arrayChar[0] = 'a'$
     i = -(-id + 1 - 1)$
     i$
-    +i$
+    ++i$
     int id = test(1,2)$
 }
+
 float test2(){
     float x = 1.2$
-    return x++$
+    return ++x$
 }

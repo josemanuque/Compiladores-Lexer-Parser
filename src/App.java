@@ -26,8 +26,8 @@ public class App {
         MainJflexCup main = new MainJflexCup();
 
         // Pruebas
-        main.runLexer(basePath + "/src/Pruebas/prueba2.txt");
-        main.runParser(basePath + "/src/Pruebas/prueba2.txt");
+        main.runLexer(basePath + "/src/Pruebas/prueba.txt");
+        main.runParser(basePath + "/src/Pruebas/prueba.txt");
     }
 
     public static void main(String[] args) throws Exception{

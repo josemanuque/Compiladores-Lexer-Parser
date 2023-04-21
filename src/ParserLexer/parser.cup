@@ -7,7 +7,26 @@ import java.util.ArrayList;
 // También se declaran los terminales y los no terminales por medio de los símbolos y las producciones
 
 // CODIGO JAVA 
+
 action code {:
+
+    
+:}
+
+parser code {:
+    Lexer lex;
+    Symbol token;
+    Boolean errores = false;
+    @SuppressWarnings("deprecation")
+    public parser(Lexer lex){
+        this.lex = lex;
+        this.symbolFactory = new DefaultSymbolFactory();
+    }
+    
+    public boolean getErrores(){
+        return errores;
+    }
+
     private HashMap<String, ArrayList<String>> listaTablaSimbolos = new HashMap<String, ArrayList<String>>();
     String currentHash;
 
@@ -25,23 +44,17 @@ action code {:
         }
 
     }
+    public HashMap<String, ArrayList<String>> getTablaSimbolos(){
+        return listaTablaSimbolos;
+    }
+
     private void manejoError(String error){
+        errores = true;
         int linea = lex.getLine();
         int columna = lex.getColumn();
         System.out.println("Error Sintáctico: " + error + " en la linea: " + linea + " y columna: " + columna);
         System.out.println("Se continua con el análisis sintáctico.");
     }
-:}
-
-parser code {:
-    Lexer lex;
-    Symbol token;
-    @SuppressWarnings("deprecation")
-    public parser(Lexer lex){
-        this.lex = lex;
-        this.symbolFactory = new DefaultSymbolFactory();
-    }
-    
 :}
 
 init with {: :}; // define como inicializar el parser
@@ -118,13 +131,17 @@ nuevoLenguaje ::=       funcionMain {: imprimirTablaSimbolos(); :}
                     |   funcionMain funciones {: imprimirTablaSimbolos(); :} ;
 
 
-funcionMain ::= iniFun LPARENT RPARENT INIBLOQUE bloque FINBLOQUE ;
+funcionMain ::= iniFun LPARENT RPARENT INIBLOQUE bloque FINBLOQUE 
+                |   error {: manejoError("Error de creación de función main"); :};
 
 funciones ::=       funcion {: :}
                 |   funciones funcion;
 
 funcion ::=         iniFun LPARENT parametros RPARENT INIBLOQUE bloque FINBLOQUE 
-                |   iniFun LPARENT RPARENT INIBLOQUE bloque FINBLOQUE ;
+                |   iniFun LPARENT RPARENT INIBLOQUE bloque FINBLOQUE
+                |   iniFun LPARENT parametros RPARENT INIBLOQUE FINBLOQUE error {: manejoError("Funcion debe tener sentencias debido a que debe retornar un valor"); :}
+                |   iniFun LPARENT  RPARENT INIBLOQUE FINBLOQUE error {: manejoError("Funcion debe tener sentencias debido a que debe retornar un valor"); :}
+                |   error {: manejoError("Error de creación de función"); :};
 
 tipoRet ::=     INT {: RESULT = "int";:}
             |   FLOAT {: RESULT = "float";:}
@@ -344,7 +361,9 @@ arregloSinTam ::=       tipoSubset:tip ID:id LPARENT_CUAD RPARENT_CUAD {: RESULT
 creaArreglo ::=     tipoArreglo:tip FINEXP {: RESULT = tip.toString();:};
 
 creaAsignaArreglo ::=       tipoArreglo:tip EQUIV INIBLOQUE arregloValores FINBLOQUE {: RESULT = tip.toString();:}
-                        |   arregloSinTam:a EQUIV INIBLOQUE arregloValores FINBLOQUE {: RESULT = a.toString();:};
+                        |   arregloSinTam:a EQUIV INIBLOQUE arregloValores FINBLOQUE {: RESULT = a.toString();:}
+                        |   arregloSinTam:a FINBLOQUE error {: manejoError("No se puede declarar un arreglo sin tamaño.");:};
+
 
 tipoArreglo ::=     tipoSubset:tip expArreglo:exp {: RESULT = exp.toString()+": "+tip.toString(); :};
 
