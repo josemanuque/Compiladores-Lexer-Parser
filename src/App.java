@@ -31,8 +31,8 @@ public class App {
     }
 
     public static void main(String[] args) throws Exception{
-        GenerarLexerParser();
-        Thread.sleep(3000); // sleep para darle tiempo a que se generen los archivos
+        //GenerarLexerParser();
+        //Thread.sleep(3000); // sleep para darle tiempo a que se generen los archivos
         PruebasLexerParser();
     }
 }
