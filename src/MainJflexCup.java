@@ -116,11 +116,9 @@ public class MainJflexCup {
             file.close();
         }
         catch (Exception e) {
-            System.out.println("El archivo fuente tiene errores, no puede ser generado por la gramática.");
             System.err.println(pathTest + " no se pudo leer");
         }
         catch (Error e) {
-            System.out.println("El archivo fuente tiene errores, no puede ser generado por la gramática.");
             System.err.println(e.getMessage());
         }
     }

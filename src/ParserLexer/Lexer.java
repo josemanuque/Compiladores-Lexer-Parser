@@ -407,15 +407,6 @@ public class Lexer implements java_cup.runtime.Scanner {
    //Código de usuario
     StringBuffer string = new StringBuffer(); // para manejar los strings
 
-    /* 
-    *   Método para crear un símbolo
-        Entradas: 
-            - type: tipo de símbolo
-            - value: valor del símbolo (opcional)
-        Salida: 
-            - Symbol: símbolo creado
-        Restricciones: ninguna
-    */
     private Symbol symbol(int type) {
         return new Symbol(type, yyline+1, yycolumn+1, yytext());
     }
@@ -424,45 +415,20 @@ public class Lexer implements java_cup.runtime.Scanner {
         return new Symbol(type, yyline+1, yycolumn+1, value);
     }
 
-    /*
-    *   Método para manejar los errores léxicos
-        Entradas: 
-            - error: mensaje de error
-        Salida: ninguna
-        Restricciones: ninguna
-    */
     private void yyerror(String error) {
         System.err.println("Error Léxico: " + error + " en la línea " + (yyline+1) + " y columna " + (yycolumn+1));
     }
 
-    /*
-    *   Método que verifica si un char es válido
-        Entradas: 
-            - string buffer: string buffer que contiene el char
-        Salida: ninguna
-        Restricciones: ninguna
-    */
     private void checkChar(StringBuffer s) {
-        if (s.length() == 2 ){
+        if (s.length() > 1){
             yyerror("Más de un Caracter para tipo char");
         }
     }
 
-    /*
-    *   Método que retorna la linea del lexema actual
-        Entradas: ninguna
-        Salida: ninguna
-        Restricciones: ninguna
-    */
     public int getLine() {
         return yyline+1;
     }
-    /*
-    *   Método que retorna la columna del lexema actual
-        Entradas: ninguna
-        Salida: ninguna
-        Restricciones: ninguna
-    */
+
     public int getColumn() {
         return yycolumn+1;
     }
@@ -899,7 +865,7 @@ public class Lexer implements java_cup.runtime.Scanner {
             }  // fall though
             case 160: break;
             case CARACTER: {
-              yyerror("Char sin cierre"); throw new Error("Char sin cierre");
+              yyerror("Char sin cierre"); return symbol(sym.EOF);
             }  // fall though
             case 161: break;
             case COMENTARIO: {
@@ -1088,7 +1054,7 @@ public class Lexer implements java_cup.runtime.Scanner {
           // fall through
           case 107: break;
           case 36:
-            { yybegin(YYINITIAL); return symbol(sym.CARACTER, ("\'" + string.toString() + "\'"));
+            { yybegin(YYINITIAL); return symbol(sym.CARACTER, ("\'" +string.toString() + "\'"));
             }
           // fall through
           case 108: break;

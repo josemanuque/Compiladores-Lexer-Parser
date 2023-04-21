@@ -24,15 +24,6 @@ import java_cup.runtime.*;
    //Código de usuario
     StringBuffer string = new StringBuffer(); // para manejar los strings
 
-    /* 
-    *   Método para crear un símbolo
-        Entradas: 
-            - type: tipo de símbolo
-            - value: valor del símbolo (opcional)
-        Salida: 
-            - Symbol: símbolo creado
-        Restricciones: ninguna
-    */
     private Symbol symbol(int type) {
         return new Symbol(type, yyline+1, yycolumn+1, yytext());
     }
@@ -41,45 +32,20 @@ import java_cup.runtime.*;
         return new Symbol(type, yyline+1, yycolumn+1, value);
     }
 
-    /*
-    *   Método para manejar los errores léxicos
-        Entradas: 
-            - error: mensaje de error
-        Salida: ninguna
-        Restricciones: ninguna
-    */
     private void yyerror(String error) {
         System.err.println("Error Léxico: " + error + " en la línea " + (yyline+1) + " y columna " + (yycolumn+1));
     }
 
-    /*
-    *   Método que verifica si un char es válido
-        Entradas: 
-            - string buffer: string buffer que contiene el char
-        Salida: ninguna
-        Restricciones: ninguna
-    */
     private void checkChar(StringBuffer s) {
-        if (s.length() == 2 ){
+        if (s.length() > 1){
             yyerror("Más de un Caracter para tipo char");
         }
     }
 
-    /*
-    *   Método que retorna la linea del lexema actual
-        Entradas: ninguna
-        Salida: ninguna
-        Restricciones: ninguna
-    */
     public int getLine() {
         return yyline+1;
     }
-    /*
-    *   Método que retorna la columna del lexema actual
-        Entradas: ninguna
-        Salida: ninguna
-        Restricciones: ninguna
-    */
+
     public int getColumn() {
         return yycolumn+1;
     }
@@ -240,7 +206,7 @@ NumDecimal          = [0-9]+\.[0-9]+
 <CARACTER> {
     /* Si encuentra un fin de cadena entonces concatenamos la comilla doble, vaciamos la variable global 
     y que regrese al estado inicial para que siga reconociendo lexemas y que nos retorne la cadena */
-    \'              { yybegin(YYINITIAL); return symbol(sym.CARACTER, ("\'" + string.toString() + "\'"));}
+    \'              { yybegin(YYINITIAL); return symbol(sym.CARACTER, ("\'" +string.toString() + "\'"));}
     // si reconoce un enter significa que no tiene cierre de cadena entonces es un error
     \t              {string.append("\t"); checkChar(string);}
     \n              {string.append("\n"); checkChar(string);} // Esto es para que imprima el enter
@@ -249,7 +215,7 @@ NumDecimal          = [0-9]+\.[0-9]+
     \\[\']          {string.append("\'"); checkChar(string);}
     \\              {string.append("\\"); checkChar(string);}
     [^\n\r\"\\\']   {string.append(yytext()); checkChar(string);} // Si no es un caracter especial entonces lo agrega a la variable global
-    <<EOF>>         {yyerror("Char sin cierre"); throw new Error("Char sin cierre");}
+    <<EOF>>         {yyerror("Char sin cierre"); return symbol(sym.EOF);}
 }
 
 <COMENTARIO>{
