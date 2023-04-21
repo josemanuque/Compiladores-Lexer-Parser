@@ -692,12 +692,24 @@ public class parser extends java_cup.runtime.lr_parser {
     Lexer lex;
     Symbol token;
     Boolean errores = false;
+
+    /* Constructor del parser, recibe como parámetro el lexer que se va a utilizar 
+        Entradas: Lexer lex
+        Salidas: Ninguna
+        Restricciones: Ninguna
+    */
+
     @SuppressWarnings("deprecation")
     public parser(Lexer lex){
         this.lex = lex;
         this.symbolFactory = new DefaultSymbolFactory();
     }
     
+    /* Método que se encarga de retornar el valor booleao de errores. Indicando si hubo errores o no
+        Entradas: Ninguna
+        Salidas: errores
+        Restricciones: Ninguna
+    */
     public boolean getErrores(){
         return errores;
     }
@@ -705,6 +717,11 @@ public class parser extends java_cup.runtime.lr_parser {
     private HashMap<String, ArrayList<String>> listaTablaSimbolos = new HashMap<String, ArrayList<String>>();
     String currentHash;
 
+    /* Método que se encarga de imprimir la tabla de símbolos
+        Entradas: Ninguna
+        Salidas: Ninguna
+        Restricciones: Ninguna
+    */
     private void imprimirTablaSimbolos(){
         for(String key: listaTablaSimbolos.keySet()){
             System.out.println("-------------------------");
@@ -719,10 +736,22 @@ public class parser extends java_cup.runtime.lr_parser {
         }
 
     }
+
+    /*
+        Método que se encarga de retornar la tabla de símbolos
+        Entradas: Ninguna
+        Salidas: tabla de símbolos
+        Restricciones: Ninguna
+    */
     public HashMap<String, ArrayList<String>> getTablaSimbolos(){
         return listaTablaSimbolos;
     }
 
+    /* Método que se encarga de imprimir en consola el error sintáctico
+        Entradas: String error. Error que se va a imprimir
+        Salidas: Ninguna. Imprime en consola el error
+        Restricciones: Ninguna
+    */
     private void manejoError(String error){
         errores = true;
         int linea = lex.getLine();
