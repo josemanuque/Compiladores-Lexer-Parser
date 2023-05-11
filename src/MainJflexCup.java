@@ -87,7 +87,7 @@ public class MainJflexCup {
     }
     public void runParser(String pathTest){
         try{
-            String pathParserOutput = "src/Reports/outputParser.txt";
+            String pathParserOutput = "src/Reports/outputParser1.txt";
             BufferedWriter file = new BufferedWriter(new FileWriter(pathParserOutput));
             Reader inputLexer = new FileReader(pathTest);
             Lexer lexer = new Lexer(inputLexer);
@@ -118,6 +118,7 @@ public class MainJflexCup {
         catch (Exception e) {
             System.out.println("El archivo fuente tiene errores, no puede ser generado por la gramática.");
             System.err.println(pathTest + " no se pudo leer");
+            System.out.println(e);
         }
         catch (Error e) {
             System.out.println("El archivo fuente tiene errores, no puede ser generado por la gramática.");

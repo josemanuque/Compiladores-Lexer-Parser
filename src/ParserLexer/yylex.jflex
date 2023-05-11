@@ -104,7 +104,7 @@ ComentarioDocumentacion     = "/_" ((\.|\n)*?) "_/"
 Id                  = [a-zA-Z_] [a-zA-Z0-9_]*
 NumEntero           = ([+-]  [1-9] [0-9]*) | ([1-9] [0-9]*) | 0
 //NumEnteroPositivo   = [1-9] [0-9]*
-NumDecimal          = [0-9]+\.[0-9]+
+NumDecimal          = ([+-]  [0-9]+\.[0-9]+) | ([0-9]+\.[0-9]+)
 
 %state CADENA 
 %state CARACTER 
@@ -165,7 +165,7 @@ NumDecimal          = [0-9]+\.[0-9]+
     ////// Literales ///////
     {NumEntero}  {return symbol(sym.ENTERO, Integer.parseInt(yytext()));}
     //{NumEnteroPositivo}  {return symbol(sym.ENTERO_POSITIVO, Integer.parseInt(yytext()));}
-    {NumDecimal} {return symbol(sym.DECIMAL, new Float(yytext().substring(0,yylength()-1)));}
+    {NumDecimal} {return symbol(sym.DECIMAL, new Float(yytext()));}
     \" {string.setLength(0); yybegin(CADENA);}
     "/_" {string.setLength(0); yybegin(COMENTARIO);}
 

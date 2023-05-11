@@ -1,0 +1,24 @@
+-------------------------
+
+Tabla de símbolos: main
+Valores: tipo:main: int
+miChar: char
+str1: string
+fl1: float
+in1: int
+fl2: float
+arr: int
+arr2: char
+test: float
+bl0: boolean
+bl1: boolean
+
+-------------------------
+
+Tabla de símbolos: miOtraFun
+Valores: tipo:funcion: float
+x22: char
+ch33: char
+str2: string
+
+El archivo puede ser generado por la gramática.
