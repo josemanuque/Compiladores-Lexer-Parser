@@ -77,12 +77,12 @@ parser code {:
         Salidas: Ninguna. Imprime en consola el error
         Restricciones: Ninguna
     */
-    private void manejoError(String error){
+    private void manejoError(String error, String tipoError){
         errores = true;
         int linea = lex.getLine();
         int columna = lex.getColumn();
-        System.out.println("Error Sintáctico: " + error + " en la linea: " + linea + " y columna: " + columna);
-        System.out.println("Se continua con el análisis sintáctico.");
+        System.out.println("Error "+tipoError+": " + error + " en la linea: " + linea + " y columna: " + columna);
+        System.out.println("Se continua con el análisis "+tipoError+);
     }
 :}
 
@@ -161,16 +161,16 @@ nuevoLenguaje ::=       funcionMain {: imprimirTablaSimbolos(); :}
 
 
 funcionMain ::= iniFun LPARENT RPARENT INIBLOQUE bloque FINBLOQUE 
-                |   error {: manejoError("Error de creación de función main"); :};
+                |   error {: manejoError("Error de creación de función main", "sintáctico"); :};
 
 funciones ::=       funcion {: :}
                 |   funciones funcion;
 
 funcion ::=         iniFun LPARENT parametros RPARENT INIBLOQUE bloque FINBLOQUE 
                 |   iniFun LPARENT RPARENT INIBLOQUE bloque FINBLOQUE
-                |   iniFun LPARENT parametros RPARENT INIBLOQUE FINBLOQUE error {: manejoError("Funcion debe tener sentencias debido a que debe retornar un valor"); :}
-                |   iniFun LPARENT  RPARENT INIBLOQUE FINBLOQUE error {: manejoError("Funcion debe tener sentencias debido a que debe retornar un valor"); :}
-                |   error {: manejoError("Error de creación de función"); :};
+                |   iniFun LPARENT parametros RPARENT INIBLOQUE FINBLOQUE error {: manejoError("Funcion debe tener sentencias debido a que debe retornar un valor", "sintáctico"); :}
+                |   iniFun LPARENT  RPARENT INIBLOQUE FINBLOQUE error {: manejoError("Funcion debe tener sentencias debido a que debe retornar un valor", "sintáctico"); :}
+                |   error {: manejoError("Error de creación de función", "sintáctico"); :};
 
 tipoRet ::=     INT {: RESULT = "int";:}
             |   FLOAT {: RESULT = "float";:}
@@ -238,7 +238,7 @@ sentencia ::=       creaVar:cv FINEXP
                             listaTablaSimbolos.get(currentHash).add(asigArr.toString());
                         }  
                     :} 
-                |   error {: manejoError("Error de sentencia"); :};
+                |   error {: manejoError("Error de sentencia","sintáctico"); :};
 
 usaVar ::=      ID FINEXP
             |   PLUS_UN ID FINEXP
@@ -261,7 +261,7 @@ literal ::=     operacion // operacion contiene operando aritmetico que a su vez
             |   CADENA:n {::}
             |   CARACTER:n {::}
             |   BOOLEAN:n {::}
-            |   error {: manejoError("Error de literal"); :};
+            |   error {: manejoError("Error de literal", "sintáctico"); :};
 
 operacion ::=       operacionLogica ;
 
@@ -393,7 +393,7 @@ creaArreglo ::=     tipoArreglo:tip FINEXP {: RESULT = tip.toString();:};
 
 creaAsignaArreglo ::=       tipoArreglo:tip EQUIV INIBLOQUE arregloValores FINBLOQUE {: RESULT = tip.toString();:}
                         |   arregloSinTam:a EQUIV INIBLOQUE arregloValores FINBLOQUE {: RESULT = a.toString();:}
-                        |   arregloSinTam:a FINBLOQUE error {: manejoError("No se puede declarar un arreglo sin tamaño.");:};
+                        |   arregloSinTam:a FINBLOQUE error {: manejoError("No se puede declarar un arreglo sin tamaño.", "sintáctico");:};
 
 
 tipoArreglo ::=     tipoSubset:tip expArreglo:exp {: RESULT = exp.toString()+": "+tip.toString(); :};
