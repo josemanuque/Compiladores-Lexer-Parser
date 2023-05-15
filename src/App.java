@@ -26,13 +26,13 @@ public class App {
         MainJflexCup main = new MainJflexCup();
 
         // Pruebas
-        main.runLexer(basePath + "/src/Pruebas/ejemplo código 1.txt");
-        main.runParser(basePath + "/src/Pruebas/ejemplo código 1.txt");
+        main.runLexer(basePath + "/src/Pruebas/semantico.txt");
+        main.runParser(basePath + "/src/Pruebas/semantico.txt");
     }
 
     public static void main(String[] args) throws Exception{
-        GenerarLexerParser();
+        //GenerarLexerParser();
         //Thread.sleep(3000); sleep para darle tiempo a que se generen los archivos
-        //PruebasLexerParser();
+        PruebasLexerParser();
     }
 }

@@ -779,12 +779,32 @@ public class parser extends java_cup.runtime.lr_parser {
         Salidas: Ninguna. Imprime en consola el error
         Restricciones: Ninguna
     */
-    private void manejoError(String error){
+    private void manejoError(String error, String tipoError){
         errores = true;
         int linea = lex.getLine();
         int columna = lex.getColumn();
-        System.out.println("Error Sintáctico: " + error + " en la linea: " + linea + " y columna: " + columna);
-        System.out.println("Se continua con el análisis sintáctico.");
+        System.out.println("Error "+tipoError+": "+ error +" (en la linea: " + linea + " y columna: " + columna+")");
+        System.out.println("Se continua con el análisis "+tipoError);
+    }
+
+    /* Método que se encarga de buscar en la tabla de símbolos actual un ID.
+        Entradas: lista: lista de elementos de la tabla de símbolos actual, idBuscado: ID que se requiere buscar. 
+        Salidas: Booleano true o false. 
+        Restricciones: Ninguna
+    */
+     public static boolean buscarID(ArrayList<String> lista, String idBuscado) {
+        // Recorre los elementos del ArrayList
+        for (String elemento : lista) {
+            // Divide el elemento en ID y tipo
+            String[] partes = elemento.split(":");
+            String id = partes[0];
+
+            // Verifica si el ID coincide con el ID buscado
+            if (id.equals(idBuscado)) {
+                return true; // Se encontró el ID
+            }
+        }
+        return false; // No se encontró el ID
     }
 
 
@@ -862,7 +882,7 @@ class CUP$parser$actions {
           case 4: // funcionMain ::= error 
             {
               Object RESULT =null;
-		 manejoError("Error de creación de función main"); 
+		 manejoError("Error de creación de función main", "sintáctico"); 
               CUP$parser$result = parser.getSymbolFactory().newSymbol("funcionMain",4, ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
           return CUP$parser$result;
@@ -907,7 +927,7 @@ class CUP$parser$actions {
           case 9: // funcion ::= iniFun LPARENT parametros RPARENT INIBLOQUE FINBLOQUE error 
             {
               Object RESULT =null;
-		 manejoError("Funcion debe tener sentencias debido a que debe retornar un valor"); 
+		 manejoError("Funcion debe tener sentencias debido a que debe retornar un valor", "sintáctico"); 
               CUP$parser$result = parser.getSymbolFactory().newSymbol("funcion",3, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-6)), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
           return CUP$parser$result;
@@ -916,7 +936,7 @@ class CUP$parser$actions {
           case 10: // funcion ::= iniFun LPARENT RPARENT INIBLOQUE FINBLOQUE error 
             {
               Object RESULT =null;
-		 manejoError("Funcion debe tener sentencias debido a que debe retornar un valor"); 
+		 manejoError("Funcion debe tener sentencias debido a que debe retornar un valor", "sintáctico"); 
               CUP$parser$result = parser.getSymbolFactory().newSymbol("funcion",3, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-5)), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
           return CUP$parser$result;
@@ -925,7 +945,7 @@ class CUP$parser$actions {
           case 11: // funcion ::= error 
             {
               Object RESULT =null;
-		 manejoError("Error de creación de función"); 
+		 manejoError("Error de creación de función", "sintáctico"); 
               CUP$parser$result = parser.getSymbolFactory().newSymbol("funcion",3, ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
           return CUP$parser$result;
@@ -1117,7 +1137,9 @@ class CUP$parser$actions {
 		int cvright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)).right;
 		Object cv = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1)).value;
 		  
-                        listaTablaSimbolos.get(currentHash).add(cv.toString()); 
+                        if(cv != null){
+                            listaTablaSimbolos.get(currentHash).add(cv.toString()); 
+                        }   
                     
               CUP$parser$result = parser.getSymbolFactory().newSymbol("sentencia",12, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
@@ -1192,7 +1214,9 @@ class CUP$parser$actions {
 		int creaArrright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object creaArr = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
-                      listaTablaSimbolos.get(currentHash).add(creaArr.toString()); 
+                      if(creaArr != null){
+                        listaTablaSimbolos.get(currentHash).add(creaArr.toString());
+                      }
                     
               CUP$parser$result = parser.getSymbolFactory().newSymbol("sentencia",12, ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
@@ -1218,7 +1242,7 @@ class CUP$parser$actions {
           case 37: // sentencia ::= error 
             {
               Object RESULT =null;
-		 manejoError("Error de sentencia"); 
+		 manejoError("Error de sentencia","sintáctico"); 
               CUP$parser$result = parser.getSymbolFactory().newSymbol("sentencia",12, ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
           return CUP$parser$result;
@@ -1260,7 +1284,15 @@ class CUP$parser$actions {
 		int nleft = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).left;
 		int nright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object n = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
-		 RESULT = n.toString()+": "+tip.toString(); 
+		 String var = n.toString()+": "+tip.toString();
+                  if(!listaTablaSimbolos.get(currentHash).contains(var)){ // Análisis semántico
+                    RESULT = var;
+                  }
+                  else{
+                    manejoError("La variable "+var+" "+"ya ha sido creada en la función: "+currentHash, "semántico");
+                    RESULT = null;
+                  }
+                
               CUP$parser$result = parser.getSymbolFactory().newSymbol("creaVar",13, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
           return CUP$parser$result;
@@ -1275,7 +1307,15 @@ class CUP$parser$actions {
 		int nleft = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).left;
 		int nright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object n = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
-		 RESULT = n.toString()+": "+tip.toString(); 
+		 String var = n.toString()+": "+tip.toString();
+                  if(!listaTablaSimbolos.get(currentHash).contains(var)){ // Análisis semántico
+                    RESULT = var;
+                  }
+                  else{
+                    manejoError("La variable "+var+" "+"ya ha sido creada en la función: "+currentHash, "semántico");
+                    RESULT = null;
+                  }
+                
               CUP$parser$result = parser.getSymbolFactory().newSymbol("creaVar",13, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
           return CUP$parser$result;
@@ -1401,7 +1441,7 @@ class CUP$parser$actions {
           case 52: // literal ::= error 
             {
               Object RESULT =null;
-		 manejoError("Error de literal"); 
+		 manejoError("Error de literal", "sintáctico"); 
               CUP$parser$result = parser.getSymbolFactory().newSymbol("literal",21, ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
           return CUP$parser$result;
@@ -2139,7 +2179,7 @@ class CUP$parser$actions {
 		int creaArrleft = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)).left;
 		int creaArrright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)).right;
 		Object creaArr = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1)).value;
-		 RESULT = creaArr.toString();
+		 RESULT = creaArr; 
               CUP$parser$result = parser.getSymbolFactory().newSymbol("asignaArreglo",56, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
           return CUP$parser$result;
@@ -2154,7 +2194,15 @@ class CUP$parser$actions {
 		int idleft = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-2)).left;
 		int idright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-2)).right;
 		Object id = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-2)).value;
-		 RESULT = id.toString()+": "+tip.toString();
+		  String var = id.toString()+": "+tip.toString(); 
+                        if(!listaTablaSimbolos.get(currentHash).contains(var)){ // Análisis semántico
+                            RESULT = id.toString()+": "+tip.toString();
+                        }
+                        else{
+                            manejoError("El array "+var+" "+"ya ha sido creado en la función: "+currentHash, "semántico");
+                            RESULT = null;
+                        }
+                    
               CUP$parser$result = parser.getSymbolFactory().newSymbol("arregloSinTam",52, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-3)), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
           return CUP$parser$result;
@@ -2166,7 +2214,7 @@ class CUP$parser$actions {
 		int tipleft = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)).left;
 		int tipright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)).right;
 		Object tip = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1)).value;
-		 RESULT = tip.toString();
+		 RESULT = tip; 
               CUP$parser$result = parser.getSymbolFactory().newSymbol("creaArreglo",61, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
           return CUP$parser$result;
@@ -2178,7 +2226,7 @@ class CUP$parser$actions {
 		int tipleft = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-4)).left;
 		int tipright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-4)).right;
 		Object tip = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-4)).value;
-		 RESULT = tip.toString();
+		 RESULT = tip; 
               CUP$parser$result = parser.getSymbolFactory().newSymbol("creaAsignaArreglo",60, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-4)), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
           return CUP$parser$result;
@@ -2190,7 +2238,7 @@ class CUP$parser$actions {
 		int aleft = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-4)).left;
 		int aright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-4)).right;
 		Object a = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-4)).value;
-		 RESULT = a.toString();
+		 RESULT = a; 
               CUP$parser$result = parser.getSymbolFactory().newSymbol("creaAsignaArreglo",60, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-4)), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
           return CUP$parser$result;
@@ -2202,7 +2250,7 @@ class CUP$parser$actions {
 		int aleft = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-2)).left;
 		int aright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-2)).right;
 		Object a = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-2)).value;
-		 manejoError("No se puede declarar un arreglo sin tamaño.");
+		 manejoError("No se puede declarar un arreglo sin tamaño.", "sintáctico"); 
               CUP$parser$result = parser.getSymbolFactory().newSymbol("creaAsignaArreglo",60, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-2)), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
           return CUP$parser$result;
@@ -2217,7 +2265,20 @@ class CUP$parser$actions {
 		int expleft = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).left;
 		int expright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object exp = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
-		 RESULT = exp.toString()+": "+tip.toString(); 
+		  if(exp != null){
+                        String var = exp.toString()+": "+tip.toString(); 
+                        if(!listaTablaSimbolos.get(currentHash).contains(var)){ // Análisis semántico
+                            RESULT = var;
+                        }
+                        else{
+                            manejoError("El array "+var+" "+"ya ha sido creado en la función: "+currentHash, "semántico");
+                            RESULT = null;
+                        }
+                    }
+                    else{
+                        RESULT = null;
+                    } 
+                
               CUP$parser$result = parser.getSymbolFactory().newSymbol("tipoArreglo",59, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
           return CUP$parser$result;
@@ -2271,7 +2332,19 @@ class CUP$parser$actions {
           case 144: // cantidadArreglo ::= ENTERO 
             {
               Object RESULT =null;
-
+		int eleft = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).left;
+		int eright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
+		Object e = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
+		  String entero = e.toString();
+                       int ent = Integer.parseInt(entero); 
+                       if(ent >= 0){
+                            RESULT = e; 
+                        }
+                        else{
+                            manejoError("El número entero asignado a la cantidad del arreglo es negativo", "semántico");
+                            RESULT = null;
+                        }
+                    
               CUP$parser$result = parser.getSymbolFactory().newSymbol("cantidadArreglo",55, ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
           return CUP$parser$result;
@@ -2280,7 +2353,17 @@ class CUP$parser$actions {
           case 145: // cantidadArreglo ::= ID 
             {
               Object RESULT =null;
-
+		int idleft = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).left;
+		int idright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
+		Object id = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
+		  if(buscarID(listaTablaSimbolos.get(currentHash), id.toString())){
+                            RESULT = id.toString();
+                        }
+                        else{
+                            manejoError("El id: "+id+" asignado a la cantidad del arreglo no existe o no ha sido creado", "semántico");
+                            RESULT = null; 
+                        }
+                    
               CUP$parser$result = parser.getSymbolFactory().newSymbol("cantidadArreglo",55, ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
           return CUP$parser$result;
@@ -2319,7 +2402,16 @@ class CUP$parser$actions {
 		int idleft = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-3)).left;
 		int idright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-3)).right;
 		Object id = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-3)).value;
-		 RESULT = id.toString(); 
+		int cantleft = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)).left;
+		int cantright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)).right;
+		Object cant = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1)).value;
+		  if(cant != null){
+                            RESULT = id.toString();
+                        }
+                        else{
+                            RESULT = null;
+                        }
+                    
               CUP$parser$result = parser.getSymbolFactory().newSymbol("expArreglo",54, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-3)), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
           return CUP$parser$result;

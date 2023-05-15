@@ -1,6 +1,6 @@
 -------------------------
 
-Tabla de sÌmbolos: main
+Tabla de s√≠mbolos: main
 Valores: tipo:main: int
 miChar: char
 str1: string
@@ -15,10 +15,11 @@ bl1: boolean
 
 -------------------------
 
-Tabla de sÌmbolos: miOtraFun
+Tabla de s√≠mbolos: miOtraFun
 Valores: tipo:funcion: float
-x22: char
+a: int
 ch33: char
 str2: string
+x22: int
 
-El archivo puede ser generado por la gram·tica.
+El archivo fuente tiene errores, no puede ser generado por la gram√°tica.

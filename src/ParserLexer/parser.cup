@@ -81,8 +81,28 @@ parser code {:
         errores = true;
         int linea = lex.getLine();
         int columna = lex.getColumn();
-        System.out.println("Error "+tipoError+": " + error + " en la linea: " + linea + " y columna: " + columna);
-        System.out.println("Se continua con el análisis "+tipoError+);
+        System.out.println("Error "+tipoError+": "+ error +" (en la linea: " + linea + " y columna: " + columna+")");
+        System.out.println("Se continua con el análisis "+tipoError);
+    }
+
+    /* Método que se encarga de buscar en la tabla de símbolos actual un ID.
+        Entradas: lista: lista de elementos de la tabla de símbolos actual, idBuscado: ID que se requiere buscar. 
+        Salidas: Booleano true o false. 
+        Restricciones: Ninguna
+    */
+     public static boolean buscarID(ArrayList<String> lista, String idBuscado) {
+        // Recorre los elementos del ArrayList
+        for (String elemento : lista) {
+            // Divide el elemento en ID y tipo
+            String[] partes = elemento.split(":");
+            String id = partes[0];
+
+            // Verifica si el ID coincide con el ID buscado
+            if (id.equals(idBuscado)) {
+                return true; // Se encontró el ID
+            }
+        }
+        return false; // No se encontró el ID
     }
 :}
 
@@ -214,9 +234,10 @@ bloque ::= sentencias;
 sentencias ::=      sentencia
                 |   sentencia sentencias;
 
-sentencia ::=       creaVar:cv FINEXP
-                    {:  
-                        listaTablaSimbolos.get(currentHash).add(cv.toString()); 
+sentencia ::=       creaVar:cv FINEXP {:  
+                        if(cv != null){
+                            listaTablaSimbolos.get(currentHash).add(cv.toString()); 
+                        }   
                     :}
                 |   usaVar {: :}
                 |   asignacion:asign {:
@@ -230,7 +251,9 @@ sentencia ::=       creaVar:cv FINEXP
                 |   returnFunc  {::}
                 |   creaArreglo:creaArr 
                     {:
-                      listaTablaSimbolos.get(currentHash).add(creaArr.toString()); 
+                      if(creaArr != null){
+                        listaTablaSimbolos.get(currentHash).add(creaArr.toString());
+                      }
                     :}
                 |   asignaArreglo:asigArr 
                     {:
@@ -244,8 +267,27 @@ usaVar ::=      ID FINEXP
             |   PLUS_UN ID FINEXP
             |   MINUS_UN ID FINEXP;
 
-creaVar ::=     tipoVar:tip ID:n  {: RESULT = n.toString()+": "+tip.toString(); :}
-            |   tipoSubset:tip ID:n  {: RESULT = n.toString()+": "+tip.toString(); :} ;
+creaVar ::=     tipoVar:tip ID:n  
+               {: String var = n.toString()+": "+tip.toString();
+                  if(!listaTablaSimbolos.get(currentHash).contains(var)){ // Análisis semántico
+                    RESULT = var;
+                  }
+                  else{
+                    manejoError("La variable "+var+" "+"ya ha sido creada en la función: "+currentHash, "semántico");
+                    RESULT = null;
+                  }
+                :}
+
+            |   tipoSubset:tip ID:n  
+                {: String var = n.toString()+": "+tip.toString();
+                  if(!listaTablaSimbolos.get(currentHash).contains(var)){ // Análisis semántico
+                    RESULT = var;
+                  }
+                  else{
+                    manejoError("La variable "+var+" "+"ya ha sido creada en la función: "+currentHash, "semántico");
+                    RESULT = null;
+                  }
+                :} ;
 
 asignacion ::=      creaAsignaVar:cv FINEXP {: RESULT = cv.toString(); :}
                 |   ID:n EQUIV:n2 literal:n3 FINEXP {::}
@@ -385,18 +427,42 @@ returnFunc ::= RETURN literal FINEXP;
 // Arreglos
 
 asignaArreglo ::=       asignaElementoArreglo FINEXP
-                    |   creaAsignaArreglo:creaArr FINEXP {: RESULT = creaArr.toString();:};
+                    |   creaAsignaArreglo:creaArr FINEXP {: RESULT = creaArr; :};
 
-arregloSinTam ::=       tipoSubset:tip ID:id LPARENT_CUAD RPARENT_CUAD {: RESULT = id.toString()+": "+tip.toString();:};
+arregloSinTam ::=       tipoSubset:tip ID:id LPARENT_CUAD RPARENT_CUAD 
+                    {:  String var = id.toString()+": "+tip.toString(); 
+                        if(!listaTablaSimbolos.get(currentHash).contains(var)){ // Análisis semántico
+                            RESULT = id.toString()+": "+tip.toString();
+                        }
+                        else{
+                            manejoError("El array "+var+" "+"ya ha sido creado en la función: "+currentHash, "semántico");
+                            RESULT = null;
+                        }
+                    :} ;
+                     
 
-creaArreglo ::=     tipoArreglo:tip FINEXP {: RESULT = tip.toString();:};
+creaArreglo ::=     tipoArreglo:tip FINEXP {: RESULT = tip; :};
 
-creaAsignaArreglo ::=       tipoArreglo:tip EQUIV INIBLOQUE arregloValores FINBLOQUE {: RESULT = tip.toString();:}
-                        |   arregloSinTam:a EQUIV INIBLOQUE arregloValores FINBLOQUE {: RESULT = a.toString();:}
-                        |   arregloSinTam:a FINBLOQUE error {: manejoError("No se puede declarar un arreglo sin tamaño.", "sintáctico");:};
+creaAsignaArreglo ::=       tipoArreglo:tip EQUIV INIBLOQUE arregloValores FINBLOQUE {: RESULT = tip; :}
+                        |   arregloSinTam:a EQUIV INIBLOQUE arregloValores FINBLOQUE {: RESULT = a; :}
+                        |   arregloSinTam:a FINBLOQUE error {: manejoError("No se puede declarar un arreglo sin tamaño.", "sintáctico"); :};
 
 
-tipoArreglo ::=     tipoSubset:tip expArreglo:exp {: RESULT = exp.toString()+": "+tip.toString(); :};
+tipoArreglo ::=     tipoSubset:tip expArreglo:exp 
+                {:  if(exp != null){
+                        String var = exp.toString()+": "+tip.toString(); 
+                        if(!listaTablaSimbolos.get(currentHash).contains(var)){ // Análisis semántico
+                            RESULT = var;
+                        }
+                        else{
+                            manejoError("El array "+var+" "+"ya ha sido creado en la función: "+currentHash, "semántico");
+                            RESULT = null;
+                        }
+                    }
+                    else{
+                        RESULT = null;
+                    } 
+                :} ;
 
 arregloValores ::=      arregloValor
                     |   arregloValor COMA arregloValores;
@@ -405,8 +471,27 @@ arregloValor ::=       CARACTER
                     |   ENTERO
                     |   ID;
 
-cantidadArreglo ::=     ENTERO
-                    |   ID;
+cantidadArreglo ::=     ENTERO:e
+                   {:  String entero = e.toString();
+                       int ent = Integer.parseInt(entero); 
+                       if(ent >= 0){
+                            RESULT = e; 
+                        }
+                        else{
+                            manejoError("El número entero asignado a la cantidad del arreglo es negativo", "semántico");
+                            RESULT = null;
+                        }
+                    :}
+
+                    |   ID:id
+                    {:  if(buscarID(listaTablaSimbolos.get(currentHash), id.toString())){
+                            RESULT = id.toString();
+                        }
+                        else{
+                            manejoError("El id: "+id+" asignado a la cantidad del arreglo no existe o no ha sido creado", "semántico");
+                            RESULT = null; 
+                        }
+                    :} ;
 
 
 tipoSubset ::=      INT {: RESULT = "int"; :}
@@ -414,4 +499,12 @@ tipoSubset ::=      INT {: RESULT = "int"; :}
 
 asignaElementoArreglo ::=   expArreglo EQUIV operacion;
 
-expArreglo  ::=     ID:id LPARENT_CUAD cantidadArreglo RPARENT_CUAD {: RESULT = id.toString(); :};
+expArreglo  ::=     ID:id LPARENT_CUAD cantidadArreglo:cant RPARENT_CUAD 
+                    {:  if(cant != null){
+                            RESULT = id.toString();
+                        }
+                        else{
+                            RESULT = null;
+                        }
+                    :} ;
+                       

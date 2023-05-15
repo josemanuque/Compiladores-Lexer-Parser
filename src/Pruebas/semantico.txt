@@ -22,15 +22,15 @@ _/
 	return bl1$
 }
 
-
 float miOtraFun(){
-	char x22;
+    int a = 3$
+    int arr[-2]$
 	if (x22 <= 45 # var > 5.6){
 		x22 = 10$
 		char ch33 = 'a'$
 	} else {
 		string str2 = "sdff"$
 	}
-
+    int x22$
 	return 5.6$
 }

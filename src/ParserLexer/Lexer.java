@@ -983,7 +983,7 @@ public class Lexer implements java_cup.runtime.Scanner {
           // fall through
           case 86: break;
           case 15:
-            { return symbol(sym.ENTERO, Integer.parseInt(yytext()));
+            { return symbol(sym.ENTERO, new Integer(yytext()));
             }
           // fall through
           case 87: break;

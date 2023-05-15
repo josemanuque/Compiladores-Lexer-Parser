@@ -163,7 +163,7 @@ NumDecimal          = ([+-]  [0-9]+\.[0-9]+) | ([0-9]+\.[0-9]+)
     
     
     ////// Literales ///////
-    {NumEntero}  {return symbol(sym.ENTERO, Integer.parseInt(yytext()));}
+    {NumEntero}  {return symbol(sym.ENTERO, new Integer(yytext()));}
     //{NumEnteroPositivo}  {return symbol(sym.ENTERO_POSITIVO, Integer.parseInt(yytext()));}
     {NumDecimal} {return symbol(sym.DECIMAL, new Float(yytext()));}
     \" {string.setLength(0); yybegin(CADENA);}
