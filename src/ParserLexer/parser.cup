@@ -100,6 +100,9 @@ parser code {:
                 if (partes[0].equals(idBuscado)) { // Verifica si el ID coincide con el ID buscado
                     return partes[1]; // Se encontró el ID y se envía el tipo del ID
                 }
+                if (partes[0].equals("Parámetro: "+idBuscado)) { // Verifica si el ID coincide con el ID buscado
+                    return partes[1]; // Se encontró el ID y se envía el tipo del ID
+                }	
             }
             return null;
         }
@@ -169,7 +172,7 @@ non terminal control, ciclo, condicional, condIf, condsElif, condElif, condElse;
 non terminal cicloDoWhile, cicloFor, bloqueCiclo, sentenciasCiclo, sentenciaCiclo, breakCiclo;
 non terminal arregloSinTam, asignaElementoArreglo, expArreglo, cantidadArreglo; 
 non terminal asignaArreglo, arregloValores, arregloValor, tipoArreglo, creaAsignaArreglo, creaArreglo;
-non terminal tipoSubset;
+non terminal tipoVarSubset;
 
 //non terminal nuevoLenguaje, funciones, tipoVar, creaVar, arregloConTam, parteIzAsig;
 //non terminal nuevoLenguaje, funciones, tipoVar, creaVar, arregloConTam, parteIzAsig;
@@ -235,13 +238,17 @@ parametros ::=      parametro
 
 parametro ::= tipoVar:tip ID:id 
                 {: listaTablaSimbolos.get(currentHash).add("Parámetro: "+id.toString()+": "+tip.toString());:} 
-            | tipoSubset:tip ID:id
+            | tipoVarSubset:tip ID:id
                 {: listaTablaSimbolos.get(currentHash).add("Parámetro: "+id.toString()+": "+tip.toString());:} ; 
 
 // creación de variables 
 tipoVar ::=   FLOAT {: RESULT = "float";:}
             | STRING {: RESULT = "string";:}
             | BOOLEAN {: RESULT = "boolean";:} ;
+
+
+tipoVarSubset ::=   INT {: RESULT = "int"; :}
+                |   CHAR {: RESULT = "char"; :} ;
 
 bloque ::= sentencias;
 
@@ -278,8 +285,28 @@ sentencia ::=       creaVar:cv FINEXP {:
                 |   error {: manejoError("Error de sentencia","sintáctico"); :};
 
 usaVar ::=      ID FINEXP
-            |   PLUS_UN ID FINEXP
-            |   MINUS_UN ID FINEXP;
+            |   PLUS_UN ID:id FINEXP 
+            {:  
+                String tip = buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id");
+                if(tip != null){ // Análisis semántico
+                    RESULT = id.toString()+": "+tip;
+                }
+                else{
+                    manejoError("El ID: "+id+" no se ha declarado dentro de la función: "+currentHash, "semántico");
+                    RESULT = null;
+                } 
+            :}
+            |   MINUS_UN ID:id FINEXP
+            {:  
+                String tip = buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id");
+                if(tip != null){ // Análisis semántico
+                    RESULT = id.toString()+": "+tip;
+                }
+                else{
+                    manejoError("El ID: "+id+" no se ha declarado dentro de la función: "+currentHash, "semántico");
+                    RESULT = null;
+                } 
+            :} ;
 
 creaVar ::=     tipoVar:tip ID:id  
                {: if(buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id") == null){ // Análisis semántico
@@ -291,7 +318,7 @@ creaVar ::=     tipoVar:tip ID:id
                   }
                 :}
 
-            |   tipoSubset:tip ID:id  
+            |   tipoVarSubset:tip ID:id  
                 {: if(buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id") == null){ // Análisis semántico
                     RESULT = id.toString()+": "+tip.toString();
                   }
@@ -485,7 +512,7 @@ returnFunc ::= RETURN literal FINEXP;
 asignaArreglo ::=       asignaElementoArreglo FINEXP
                     |   creaAsignaArreglo:creaArr FINEXP {: RESULT = creaArr; :};
 
-arregloSinTam ::=       tipoSubset:tip ID:id LPARENT_CUAD RPARENT_CUAD 
+arregloSinTam ::=       tipoVarSubset:tip ID:id LPARENT_CUAD RPARENT_CUAD 
                     {:  if(buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id") == null ){ // Análisis semántico
                             RESULT = id.toString()+": "+tip.toString();
                         }
@@ -503,7 +530,7 @@ creaAsignaArreglo ::=       tipoArreglo:tip EQUIV INIBLOQUE arregloValores FINBL
                         |   arregloSinTam:a FINBLOQUE error {: manejoError("No se puede declarar un arreglo sin tamaño.", "sintáctico"); :};
 
 
-tipoArreglo ::=     tipoSubset:tip expArreglo:exp 
+tipoArreglo ::=     tipoVarSubset:tip expArreglo:exp 
                 {:  if(exp != null){ 
                         if(buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), exp.toString(), "id") == null ){ // Análisis semántico
                             RESULT = exp.toString()+": "+tip.toString();
@@ -547,9 +574,6 @@ cantidadArreglo ::=     ENTERO:e
                         }
                     :} ;
 
-
-tipoSubset ::=      INT {: RESULT = "int"; :}
-                |   CHAR {: RESULT = "char"; :} ;
 
 asignaElementoArreglo ::=   expArreglo EQUIV operacion;
 
