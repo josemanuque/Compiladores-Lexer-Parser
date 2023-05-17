@@ -24,7 +24,8 @@ _/
 
 float miOtraFun(){
     int a = 3$
-    int arr[-2]$
+    float a = 2$
+    int arr[b]$
 	if (x22 <= 45 # var > 5.6){
 		x22 = 10$
 		char ch33 = 'a'$

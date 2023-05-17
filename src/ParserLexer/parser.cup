@@ -267,34 +267,32 @@ usaVar ::=      ID FINEXP
             |   PLUS_UN ID FINEXP
             |   MINUS_UN ID FINEXP;
 
-creaVar ::=     tipoVar:tip ID:n  
-               {: String var = n.toString()+": "+tip.toString();
-                  if(!listaTablaSimbolos.get(currentHash).contains(var)){ // Análisis semántico
-                    RESULT = var;
+creaVar ::=     tipoVar:tip ID:id  
+               {: if(!buscarID(listaTablaSimbolos.get(currentHash), id.toString())){ // Análisis semántico
+                    RESULT = id.toString()+": "+tip.toString();
                   }
                   else{
-                    manejoError("La variable "+var+" "+"ya ha sido creada en la función: "+currentHash, "semántico");
+                    manejoError("El ID: "+id+" ya ha sido utilizado en otra creación de variable dentro de la función: "+currentHash, "semántico");
                     RESULT = null;
                   }
                 :}
 
-            |   tipoSubset:tip ID:n  
-                {: String var = n.toString()+": "+tip.toString();
-                  if(!listaTablaSimbolos.get(currentHash).contains(var)){ // Análisis semántico
-                    RESULT = var;
+            |   tipoSubset:tip ID:id  
+                {: if(!buscarID(listaTablaSimbolos.get(currentHash), id.toString())){ // Análisis semántico
+                    RESULT = id.toString()+": "+tip.toString();
                   }
                   else{
-                    manejoError("La variable "+var+" "+"ya ha sido creada en la función: "+currentHash, "semántico");
+                    manejoError("El ID: "+id+" ya ha sido utilizado en otra creación de variable dentro de la función: "+currentHash, "semántico");
                     RESULT = null;
                   }
                 :} ;
 
-asignacion ::=      creaAsignaVar:cv FINEXP {: RESULT = cv.toString(); :}
+asignacion ::=      creaAsignaVar:cv FINEXP {: RESULT = cv ; :}
                 |   ID:n EQUIV:n2 literal:n3 FINEXP {::}
                 |   ID:n EQUIV:n2 input:n3 FINEXP {::};
 
-creaAsignaVar ::=    creaVar:cv EQUIV literal {: RESULT = cv.toString();:}
-                  |  creaVar:cv EQUIV input {: RESULT = cv.toString();:} ; 
+creaAsignaVar ::=    creaVar:cv EQUIV literal {: RESULT = cv ;:}
+                  |  creaVar:cv EQUIV input {: RESULT = cv ; :} ; 
  
                 //|   tipoVar ID EQUIV arreglo FINEXP
                 //|   tipoVar ID EQUIV arregloConTam FINEXP
@@ -430,12 +428,11 @@ asignaArreglo ::=       asignaElementoArreglo FINEXP
                     |   creaAsignaArreglo:creaArr FINEXP {: RESULT = creaArr; :};
 
 arregloSinTam ::=       tipoSubset:tip ID:id LPARENT_CUAD RPARENT_CUAD 
-                    {:  String var = id.toString()+": "+tip.toString(); 
-                        if(!listaTablaSimbolos.get(currentHash).contains(var)){ // Análisis semántico
+                    {:  if(!buscarID(listaTablaSimbolos.get(currentHash), id.toString())){ // Análisis semántico
                             RESULT = id.toString()+": "+tip.toString();
                         }
                         else{
-                            manejoError("El array "+var+" "+"ya ha sido creado en la función: "+currentHash, "semántico");
+                            manejoError("El ID: "+id+" ya ha sido utilizado en otra creación de variable dentro de la función: "+currentHash, "semántico");
                             RESULT = null;
                         }
                     :} ;
@@ -449,13 +446,12 @@ creaAsignaArreglo ::=       tipoArreglo:tip EQUIV INIBLOQUE arregloValores FINBL
 
 
 tipoArreglo ::=     tipoSubset:tip expArreglo:exp 
-                {:  if(exp != null){
-                        String var = exp.toString()+": "+tip.toString(); 
-                        if(!listaTablaSimbolos.get(currentHash).contains(var)){ // Análisis semántico
-                            RESULT = var;
+                {:  if(exp != null){ 
+                        if(!buscarID(listaTablaSimbolos.get(currentHash), exp.toString())){ // Análisis semántico
+                            RESULT = exp.toString()+": "+tip.toString();
                         }
                         else{
-                            manejoError("El array "+var+" "+"ya ha sido creado en la función: "+currentHash, "semántico");
+                            manejoError("El ID: "+exp+" ya ha sido utilizado en otra creación de variable dentro de la función: "+currentHash, "semántico");
                             RESULT = null;
                         }
                     }

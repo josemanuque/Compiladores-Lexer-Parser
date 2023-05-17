@@ -1281,15 +1281,14 @@ class CUP$parser$actions {
 		int tipleft = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)).left;
 		int tipright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)).right;
 		Object tip = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1)).value;
-		int nleft = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).left;
-		int nright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
-		Object n = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
-		 String var = n.toString()+": "+tip.toString();
-                  if(!listaTablaSimbolos.get(currentHash).contains(var)){ // Análisis semántico
-                    RESULT = var;
+		int idleft = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).left;
+		int idright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
+		Object id = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
+		 if(!buscarID(listaTablaSimbolos.get(currentHash), id.toString())){ // Análisis semántico
+                    RESULT = id.toString()+": "+tip.toString();
                   }
                   else{
-                    manejoError("La variable "+var+" "+"ya ha sido creada en la función: "+currentHash, "semántico");
+                    manejoError("El ID: "+id+" ya ha sido utilizado en otra creación de variable dentro de la función: "+currentHash, "semántico");
                     RESULT = null;
                   }
                 
@@ -1304,15 +1303,14 @@ class CUP$parser$actions {
 		int tipleft = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)).left;
 		int tipright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)).right;
 		Object tip = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1)).value;
-		int nleft = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).left;
-		int nright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
-		Object n = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
-		 String var = n.toString()+": "+tip.toString();
-                  if(!listaTablaSimbolos.get(currentHash).contains(var)){ // Análisis semántico
-                    RESULT = var;
+		int idleft = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).left;
+		int idright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
+		Object id = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
+		 if(!buscarID(listaTablaSimbolos.get(currentHash), id.toString())){ // Análisis semántico
+                    RESULT = id.toString()+": "+tip.toString();
                   }
                   else{
-                    manejoError("La variable "+var+" "+"ya ha sido creada en la función: "+currentHash, "semántico");
+                    manejoError("El ID: "+id+" ya ha sido utilizado en otra creación de variable dentro de la función: "+currentHash, "semántico");
                     RESULT = null;
                   }
                 
@@ -1327,7 +1325,7 @@ class CUP$parser$actions {
 		int cvleft = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)).left;
 		int cvright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)).right;
 		Object cv = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1)).value;
-		 RESULT = cv.toString(); 
+		 RESULT = cv ; 
               CUP$parser$result = parser.getSymbolFactory().newSymbol("asignacion",14, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
           return CUP$parser$result;
@@ -1375,7 +1373,7 @@ class CUP$parser$actions {
 		int cvleft = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-2)).left;
 		int cvright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-2)).right;
 		Object cv = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-2)).value;
-		 RESULT = cv.toString();
+		 RESULT = cv ;
               CUP$parser$result = parser.getSymbolFactory().newSymbol("creaAsignaVar",15, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-2)), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
           return CUP$parser$result;
@@ -1387,7 +1385,7 @@ class CUP$parser$actions {
 		int cvleft = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-2)).left;
 		int cvright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-2)).right;
 		Object cv = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-2)).value;
-		 RESULT = cv.toString();
+		 RESULT = cv ; 
               CUP$parser$result = parser.getSymbolFactory().newSymbol("creaAsignaVar",15, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-2)), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
           return CUP$parser$result;
@@ -2194,12 +2192,11 @@ class CUP$parser$actions {
 		int idleft = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-2)).left;
 		int idright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-2)).right;
 		Object id = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-2)).value;
-		  String var = id.toString()+": "+tip.toString(); 
-                        if(!listaTablaSimbolos.get(currentHash).contains(var)){ // Análisis semántico
+		  if(!buscarID(listaTablaSimbolos.get(currentHash), id.toString())){ // Análisis semántico
                             RESULT = id.toString()+": "+tip.toString();
                         }
                         else{
-                            manejoError("El array "+var+" "+"ya ha sido creado en la función: "+currentHash, "semántico");
+                            manejoError("El ID: "+id+" ya ha sido utilizado en otra creación de variable dentro de la función: "+currentHash, "semántico");
                             RESULT = null;
                         }
                     
@@ -2265,13 +2262,12 @@ class CUP$parser$actions {
 		int expleft = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).left;
 		int expright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object exp = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
-		  if(exp != null){
-                        String var = exp.toString()+": "+tip.toString(); 
-                        if(!listaTablaSimbolos.get(currentHash).contains(var)){ // Análisis semántico
-                            RESULT = var;
+		  if(exp != null){ 
+                        if(!buscarID(listaTablaSimbolos.get(currentHash), exp.toString())){ // Análisis semántico
+                            RESULT = exp.toString()+": "+tip.toString();
                         }
                         else{
-                            manejoError("El array "+var+" "+"ya ha sido creado en la función: "+currentHash, "semántico");
+                            manejoError("El ID: "+exp+" ya ha sido utilizado en otra creación de variable dentro de la función: "+currentHash, "semántico");
                             RESULT = null;
                         }
                     }
