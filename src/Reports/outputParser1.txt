@@ -6,6 +6,8 @@ miChar: char
 str1: string
 fl1: float
 in1: int
+a: int
+b: float
 fl2: float
 arr: int
 arr2: char

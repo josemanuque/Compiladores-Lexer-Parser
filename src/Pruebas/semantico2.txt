@@ -1,0 +1,10 @@
+int main(){
+/_
+Comentario 1
+_/
+    float fl1$
+	int in1 = --fl1 * -14 / ++2 + 7 - 15$
+
+    return 1$
+
+}
