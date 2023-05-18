@@ -17,6 +17,8 @@ parser code {:
     Lexer lex;
     Symbol token;
     Boolean errores = false;
+    int currentTemp = 0;
+    StringBuilder codIn3D = new StringBuilder();
 
     /* Constructor del parser, recibe como parámetro el lexer que se va a utilizar 
         Entradas: Lexer lex
@@ -60,6 +62,17 @@ parser code {:
             System.out.println("");
         }
 
+    }
+
+     /* Método que se encarga de imprimir el string buffer del código intermedio 3 direcciones en la terminal.
+        Entradas: Ninguna
+        Salidas: Ninguna
+        Restricciones: Ninguna
+    */
+    private void imprimirCodigo3D(){
+        System.out.println("++++++++ CODIGO 3D +++++++++");
+        System.out.println("");
+        System.out.println(codIn3D.toString());
     }
 
     /*
@@ -193,8 +206,8 @@ start with nuevoLenguaje;
 
 ////// producciones de la gramática ///////
 
-nuevoLenguaje ::=       funcionMain {: imprimirTablaSimbolos(); :}
-                    |   funcionMain funciones {: imprimirTablaSimbolos(); :} ;
+nuevoLenguaje ::=       funcionMain {: imprimirTablaSimbolos(); imprimirCodigo3D(); :}
+                    |   funcionMain funciones {: imprimirTablaSimbolos(); imprimirCodigo3D(); :} ;
 
 
 funcionMain ::= iniFun LPARENT RPARENT INIBLOQUE bloque FINBLOQUE 
@@ -242,9 +255,9 @@ parametro ::= tipoVar:tip ID:id
                 {: listaTablaSimbolos.get(currentHash).add("Parámetro: "+id.toString()+": "+tip.toString());:} ; 
 
 // creación de variables 
-tipoVar ::=   FLOAT {: RESULT = "float";:}
-            | STRING {: RESULT = "string";:}
-            | BOOLEAN {: RESULT = "boolean";:} ;
+tipoVar ::=   FLOAT {: RESULT = "float"; :}
+            | STRING {: RESULT = "string"; :}
+            | BOOLEAN {: RESULT = "boolean"; :} ;
 
 
 tipoVarSubset ::=   INT {: RESULT = "int"; :}
@@ -255,27 +268,14 @@ bloque ::= sentencias;
 sentencias ::=      sentencia
                 |   sentencia sentencias;
 
-sentencia ::=       creaVar:cv FINEXP {:  
-                        if(cv != null){
-                            listaTablaSimbolos.get(currentHash).add(cv.toString()); 
-                        }   
-                    :}
-                |   usaVar {: :}
-                |   asignacion:asign {:
-                        if(asign != null){
-                            listaTablaSimbolos.get(currentHash).add(asign.toString());
-                        }  
-                    :}
-                |   llamaFunc FINEXP   {::}
-                |   output      {::}
-                |   control     {::}
-                |   returnFunc  {::}
-                |   creaArreglo:creaArr 
-                    {:
-                      if(creaArr != null){
-                        listaTablaSimbolos.get(currentHash).add(creaArr.toString());
-                      }
-                    :}
+sentencia ::=       creaVar FINEXP 
+                |   usaVar
+                |   asignacion
+                |   llamaFunc FINEXP   
+                |   output      
+                |   control     
+                |   returnFunc
+                |   creaArreglo
                 |   asignaArreglo:asigArr 
                     {:
                         if(asigArr != null){
@@ -309,49 +309,76 @@ usaVar ::=      ID FINEXP
             :} ;
 
 creaVar ::=     tipoVar:tip ID:id  
-               {: if(buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id") == null){ // Análisis semántico
-                    RESULT = id.toString()+": "+tip.toString();
-                  }
-                  else{
-                    manejoError("El ID: "+id+" ya ha sido utilizado en otra creación de variable dentro de la función: "+currentHash, "semántico");
-                    RESULT = null;
-                  }
+               {:   // ++++ Análisis semántico ++++
+                    if(buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id") == null){ 
+                        // ++++ Código 3D ++++
+                        codIn3D.append("\ndata_"+tip.toString()+" "+id.toString());
+                        // +++ Tabla de símbolos ++++ 
+                        listaTablaSimbolos.get(currentHash).add(id.toString()+": "+tip.toString());
+                        RESULT = id.toString()+": "+tip.toString();
+                    }
+                    else{
+                        //Manejo error semántico
+                        manejoError("El ID: "+id+" ya ha sido utilizado en otra creación de variable dentro de la función: "+currentHash, "semántico");
+                        RESULT = "error_semantico";
+                    }
                 :}
 
             |   tipoVarSubset:tip ID:id  
-                {: if(buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id") == null){ // Análisis semántico
-                    RESULT = id.toString()+": "+tip.toString();
-                  }
-                  else{
-                    manejoError("El ID: "+id+" ya ha sido utilizado en otra creación de variable dentro de la función: "+currentHash, "semántico");
-                    RESULT = null;
-                  }
+                {: // ++++ Análisis semántico ++++
+                    if(buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id") == null){ 
+                        // ++++ Código 3D ++++
+                        codIn3D.append("\ndata_"+tip.toString()+" "+id.toString());
+                        // +++ Tabla de símbolos ++++ 
+                        listaTablaSimbolos.get(currentHash).add(id.toString()+": "+tip.toString());
+                        RESULT = id.toString()+": "+tip.toString();
+                    }
+                    else{
+                        //Manejo error semántico
+                        manejoError("El ID: "+id+" ya ha sido utilizado en otra creación de variable dentro de la función: "+currentHash, "semántico");
+                        RESULT = "error_semantico";
+                    }
                 :} ;
 
-asignacion ::=      creaAsignaVar:cv FINEXP {: RESULT = cv ; :}
+asignacion ::=      creaAsignaVar FINEXP
                 |   ID:n EQUIV:n2 literal:n3 FINEXP {::}
                 |   ID:n EQUIV:n2 input:n3 FINEXP {::};
 
 creaAsignaVar ::=    creaVar:cv EQUIV literal:lit 
-                     {: if(cv != null && lit != null){
-                            String[] partes = cv.toString().split(": ");
-                            if(!partes[1].equals(lit.toString())){  // Análisis semántico
-                                System.out.println("++++++El tipo de la variable es: "+partes[1]);
-                                System.out.println("++++++El tipo del literal es: "+lit.toString());
-                                manejoError("El tipo del ID: "+partes[0].toString()+" no corresponde con los valores asignados", "semántico") ;
+                     {: // ++++ Análisis semántico ++++
+                        if(!cv.equals("error_semantico") && !lit.equals("error_semantico")){
+                            String[] partes_cv = cv.toString().split(": ");
+                            String[] partes_lit = lit.toString().split("::");
+                            if(!partes_cv[1].equals(partes_lit[0])){
+                                System.out.println("++++++El tipo de la variable es: "+partes_cv[1]);
+                                System.out.println("++++++El tipo del literal es: "+partes_lit[0]);
+                                manejoError("El tipo del ID: "+partes_cv[0]+" no corresponde con los valores asignados", "semántico") ;
+                            }
+                            else{
+                                // ++++ Código 3D ++++
+                                codIn3D.append("\n"+partes_cv[0]+" = "+partes_lit[1]);
                             }
                         }
-                        RESULT = cv;
                      :}
-                  |  creaVar:cv EQUIV input {: RESULT = cv ; :} ; 
+                  |  creaVar:cv EQUIV input {: RESULT = cv ; :} ; //***********************************FALTAAAAA codigo 3D y semántico
  
                 //|   tipoVar ID EQUIV arreglo FINEXP
                 //|   tipoVar ID EQUIV arregloConTam FINEXP
 
 literal ::=     operacion:op {:RESULT = op ;:}// operacion contiene operando aritmetico que a su vez contiene entero, decimal, id
-            |   CADENA {: RESULT = "string" ;:}
-            |   CARACTER {:RESULT = "char" ;:}
-            |   BOOLEAN {:RESULT = "boolean" ;:}
+            |   CADENA:cad 
+                {: // ++++ Código 3D ++++
+                   String temp = "t"+(currentTemp++); 
+                   codIn3D.append("\n"+temp+" = "+cad.toString());
+                   RESULT = "string::"+temp; 
+               :}
+            |   CARACTER:car 
+                {: // ++++ Código 3D ++++
+                   String temp = "t"+(currentTemp++); 
+                   codIn3D.append("\n"+temp+" = "+car.toString());
+                   RESULT = "char::"+temp; 
+                :}
+            |   BOOLEAN 
             |   error {: manejoError("Error de literal", "sintáctico"); :};
 
 operacion ::=       operacionLogica:opLog {: RESULT = opLog; :} ;
@@ -359,47 +386,85 @@ operacion ::=       operacionLogica:opLog {: RESULT = opLog; :} ;
 operacionAritmetica ::=     operandoArit:opeArit {: RESULT = opeArit; :}
                         |   PLUS_UN operandoArit:opeArit {: RESULT = opeArit; :}
                         |   MINUS_UN operandoArit:opeArit {: RESULT = opeArit; :}
-                        |   operacionAritmetica:operacion1 operadorArit operacionAritmetica:operacion2
-                            {: if (operacion1 != null && operacion2 != null){
-                                    if(operacion1.toString().equals(operacion2.toString())){
-                                        RESULT = operacion1;
+                        |   operacionAritmetica:operacion1 operadorArit:operador operacionAritmetica:operacion2
+                            {: if (!operacion1.equals("error_semantico") && !operacion2.equals("error_semantico")){
+                                    String[] op1_partes = operacion1.toString().split("::");
+                                    String[] op2_partes = operacion2.toString().split("::");
+                                    if(op1_partes[0].equals(op2_partes[0])){ // si los tipos de las operaciones son iguales
+                                        // ++++ Código 3D ++++
+                                        String temp = "t"+(currentTemp++); 
+                                        codIn3D.append("\n"+temp+" = "+op1_partes[1]+" "+operador.toString()+" "+op2_partes[1]);
+                                        
+                                        RESULT = op1_partes[0]+"::"+temp;
                                     }
-                                    else if(!operacion1.toString().equals(operacion2.toString())){
-                                        System.out.println("+++++++++El tipo de la operación 1 es: "+operacion1.toString());
-                                        System.out.println("+++++++++El tipo de la operación 2 es: "+operacion2.toString());
-                                        manejoError("Uno de los operandos de la operación aritmética no coincide con el tipo de la variable asignada", "semántico");
-                                        RESULT = null;
+                                    else if(!op1_partes[0].equals(op2_partes[0])){
+                                        System.out.println("+++++++++El tipo de la operación Artimética 1 es: "+operacion1.toString());
+                                        System.out.println("+++++++++El tipo de la operación Aritmética 2 es: "+operacion2.toString());
+                                        manejoError("No se pueden operar valores o variables de diferentes tipos de datos", "semántico");
+                                        RESULT = "error_semantico";
                                     }
                                 }
                                 else{
-                                    
-                                    RESULT = null; 
+                                    RESULT = "error_semantico"; 
                                 }
                             :}
-                        |   LPARENT operacionAritmetica:operacion RPARENT {: RESULT = operacion; :}                            
-                        |   MINUS operacionAritmetica:operacion {: RESULT = operacion; :} ;
+                        |   LPARENT operacionAritmetica:operacion RPARENT 
+                            {:  if(!operacion.equals("error_semantico")){
+                                    String[] partes = operacion.toString().split("::");
+                                    String temp = "t"+(currentTemp++);
+                                    codIn3D.append("\n"+temp+" = "+"("+partes[1]+")");
+                                    RESULT = partes[0]+"::"+temp;
+                                } 
+                                else{
+                                    RESULT = "error_semantico";
+                                } 
+                            :}                            
+                        |   MINUS operacionAritmetica:operacion 
+                            {:  if(!operacion.equals("error_semantico")){
+                                    String temp = "t"+(currentTemp++);
+                                    String[] partes = operacion.toString().split("::");
+                                    codIn3D.append("\n"+temp+" = "+"-"+partes[1].toString());
+                                    RESULT = partes[0]+"::"+temp;
+                                } 
+                                else{
+                                    RESULT = "error_semantico";
+                                }
+                            :} ; 
 
-operadorArit ::=    PLUS 
-                |   MINUS 
-                |   TIMES 
-                |   DIV 
-                |   POWER 
-                |   MODULE ;
+operadorArit ::=    PLUS {: RESULT = "+"; :}
+                |   MINUS {: RESULT = "-"; :}
+                |   TIMES {: RESULT = "*"; :}
+                |   DIV {: RESULT = "/"; :}
+                |   POWER {: RESULT = "**"; :}
+                |   MODULE {: RESULT = "~"; :} ;
 
-operandoArit ::=        ENTERO:n {: RESULT = "int"; :}
-                    |   DECIMAL:n {: RESULT = "float"; :}
+operandoArit ::=        ENTERO:ent 
+                        {: // ++++ Código 3D ++++
+                            String temp = "t"+(currentTemp++); 
+                            codIn3D.append("\n"+temp+" = "+ent.toString());
+                            RESULT = "int::"+temp; 
+                        :}
+                    |   DECIMAL:dec
+                        {: // ++++ Código 3D ++++
+                            String temp = "t"+(currentTemp++); 
+                            codIn3D.append("\n"+temp+" = "+dec.toString());
+                            RESULT = "float::"+temp; 
+                        :}
                     |   ID:id 
                     {:  String tipo = buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id");
                         if(tipo != null){
-                            RESULT = tipo;
+                            // ++++ Código 3D ++++
+                            String temp = "t"+(currentTemp++); 
+                            codIn3D.append("\n"+temp+" = "+id.toString());
+                            RESULT = tipo+"::"+temp; 
                         } 
                         else{
                             manejoError("El id: "+id+" no existe o no ha sido creado", "semántico");
-                            RESULT = null;
+                            RESULT = "error_semantico";
                         } 
                     :}
-                    |   llamaFunc //**************************************************************** FALTA ANALISIS SEMANTICO*********************************************************
-                    |   expArreglo:id
+                    |   llamaFunc //***************************************FALTA ANALISIS SEMANTICO*********************************************************
+                    |   expArreglo:id //************************************FALTA CAMBIAR******************
                     {:  String tipo = buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id");
                         if( tipo != null){
                             RESULT = tipo;
@@ -410,31 +475,90 @@ operandoArit ::=        ENTERO:n {: RESULT = "int"; :}
                         }
                         :} ;
 
-operacionRelacional ::=     operacionAritmetica operadorRel operacionAritmetica:e2 {::};
+operacionRelacional ::=     operacionAritmetica:operacion1 operadorRel:operador operacionAritmetica:operacion2 
+                            {: if (!operacion1.equals("error_semantico") && !operacion2.equals("error_semantico")){
+                                    String[] op1_partes = operacion1.toString().split("::");
+                                    String[] op2_partes = operacion2.toString().split("::");
+                                    if(op1_partes[0].equals(op2_partes[0])){ // si los tipos de las operaciones son iguales
+                                        // ++++ Código 3D ++++
+                                        String temp = "t"+(currentTemp++); 
+                                        codIn3D.append("\n"+temp+" = "+op1_partes[1]+" "+operador.toString()+" "+op2_partes[1]);
+                                        RESULT = "boolean::"+temp;
+                                    }
+                                    else if(!op1_partes[0].equals(op2_partes[0])){
+                                        System.out.println("+++++++++El tipo de la operación Relacional 1 es: "+operacion1.toString());
+                                        System.out.println("+++++++++El tipo de la operación Relacional 2 es: "+operacion2.toString());
+                                        manejoError("No se pueden hacer operaciones relacionales con valores o variables de diferentes tipos de datos", "semántico");
+                                        RESULT = "error_semantico";
+                                    }
+                                }
+                                else{
+                                    RESULT = "error_semantico"; 
+                                }
+                                :} ;
 
-operadorRel ::=     MAYOR_QUE {::}
-                |   MAYOR_IGUAL {::}
-                |   MENOR_QUE {::}
-                |   MENOR_IGUAL {::}
-                |   DEQUIV  {::}
-                |   DIF {::};
+operadorRel ::=     MAYOR_QUE {: RESULT = ">"; :}
+                |   MAYOR_IGUAL {: RESULT = ">="; :}
+                |   MENOR_QUE {: RESULT = "<"; :}
+                |   MENOR_IGUAL {: RESULT = "<="; :}
+                |   DEQUIV  {: RESULT = "=="; :}
+                |   DIF {: RESULT = "!="; :} ;
 
-operacionLogica ::=     operandoLog {: RESULT = "boolean"; :}
-                    |   operacionRelacional {: RESULT = "boolean"; :}
+operacionLogica ::=     operandoLog: opLog 
+                        {:  // ++++ Código 3D ++++
+                            String temp = "t"+(currentTemp++); 
+                            codIn3D.append("\n"+temp+" = "+opLog.toString());
+                            RESULT = "boolean::"+temp;
+                        :}
+                    |   operacionRelacional: opRel {: RESULT = opRel; :}
                     |   operacionAritmetica:opArit {: RESULT = opArit; :}
-                    |   operacionLogica operadorLog operacionLogica {: RESULT = "boolean"; :}
-                    |   LPARENT operacionLogica:opLog RPARENT  {: RESULT = opLog; :} %prec LPARENT
-                    |   negacion operacionLogica {: RESULT = "boolean"; :} ; 
+                    |   operacionLogica:operacion1 operadorLog:operador operacionLogica:operacion2 
+                        {: if (!operacion1.equals("error_semantico") && !operacion2.equals("error_semantico")){
+                                String[] op1_partes = operacion1.toString().split("::");
+                                String[] op2_partes = operacion2.toString().split("::");
+                                // ++++ Código 3D ++++
+                                String temp = "t"+(currentTemp++); 
+                                codIn3D.append("\n"+temp+" = "+op1_partes[1]+" "+operador.toString()+" "+op2_partes[1]);
+                                RESULT = "boolean::"+temp;
+                            }
+                            else{
+                                RESULT = "error_semantico"; 
+                            }
+                        :}
 
-operandoLog ::=     TRUE
-                |   FALSE ;
+                    |   LPARENT operacionLogica:opLog RPARENT 
+                        {: if(!opLog.equals("error_semantico")){
+                            String[] partes = opLog.toString().split("::");
+                            String temp = "t"+(currentTemp++);
+                            codIn3D.append("\n"+temp+" = "+"("+partes[1]+")");
+                            RESULT = partes[0]+"::"+temp;
+                            } 
+                            else{
+                                RESULT = "error_semantico";
+                            } 
+                        :} %prec LPARENT
+
+                    |   negacion:neg operacionLogica:opLog 
+                        {: if(!opLog.equals("error_semantico")){
+                            String temp = "t"+(currentTemp++);
+                            String[] partes = opLog.toString().split("::");
+                            codIn3D.append("\n"+temp+" = "+neg.toString()+partes[1].toString());
+                            RESULT = "boolean::"+temp;
+                            } 
+                            else{
+                                RESULT = "error_semantico";
+                            }
+                        :} ; 
+
+operandoLog ::=     TRUE {: RESULT = "true"; :}
+                |   FALSE {: RESULT = "false"; :} ;
 
 
-operadorLog ::=     AND
-                |   OR;
+operadorLog ::=     AND {: RESULT = "^"; :}
+                |   OR {: RESULT = "#"; :} ;
 
-negacion ::=        NOT
-                |   EXCLAMACION;
+negacion ::=        NOT {: RESULT = "not"; :}
+                |   EXCLAMACION {: RESULT = "!"; :} ;
 
 
 llamaFunc ::=       ID LPARENT parametrosLlamada RPARENT
@@ -523,7 +647,7 @@ arregloSinTam ::=       tipoVarSubset:tip ID:id LPARENT_CUAD RPARENT_CUAD
                     :} ;
                      
 
-creaArreglo ::=     tipoArreglo:tip FINEXP {: RESULT = tip; :};
+creaArreglo ::=     tipoArreglo FINEXP ;
 
 creaAsignaArreglo ::=       tipoArreglo:tip EQUIV INIBLOQUE arregloValores FINBLOQUE {: RESULT = tip; :}
                         |   arregloSinTam:a EQUIV INIBLOQUE arregloValores FINBLOQUE {: RESULT = a; :}
@@ -531,17 +655,23 @@ creaAsignaArreglo ::=       tipoArreglo:tip EQUIV INIBLOQUE arregloValores FINBL
 
 
 tipoArreglo ::=     tipoVarSubset:tip expArreglo:exp 
-                {:  if(exp != null){ 
-                        if(buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), exp.toString(), "id") == null ){ // Análisis semántico
-                            RESULT = exp.toString()+": "+tip.toString();
+                {:  if(!exp.equals("error_semantico")){
+                        // ++++ Análisis semántico ++++ 
+                        if(buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), exp.toString(), "id") == null ){
+                            listaTablaSimbolos.get(currentHash).add(exp.toString()+": "+tip.toString());
+                            // ++++ Código 3D ++++
+                            String temp = "t"+(currentTemp++); 
+                            codIn3D.append("\ndata_"+tip.toString()+" "+exp.toString());
+                            RESULT = tip.toString()+"::"+temp;
                         }
                         else{
+                            // Manejo error semántico
                             manejoError("El ID: "+exp+" ya ha sido utilizado en otra creación de variable dentro de la función: "+currentHash, "semántico");
-                            RESULT = null;
+                            RESULT = "error_semantico";
                         }
                     }
                     else{
-                        RESULT = null;
+                        RESULT = "error_semantico";
                     } 
                 :} ;
 
@@ -554,23 +684,25 @@ arregloValor ::=       CARACTER
 
 cantidadArreglo ::=     ENTERO:e
                    {:  String entero = e.toString();
-                       int ent = Integer.parseInt(entero); 
+                       int ent = Integer.parseInt(entero);
+                       // ++++ Análisis semántico ++++ 
                        if(ent >= 0){
                             RESULT = e; 
                         }
                         else{
                             manejoError("El número entero asignado a la cantidad del arreglo es negativo", "semántico");
-                            RESULT = null;
+                            RESULT = "error_semantico";
                         }
                     :}
 
                     |   ID:id
-                    {:  if(buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id") != null ){
-                            RESULT = id.toString();
+                    {:  // ++++ Análisis semántico ++++
+                        if(buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id") != null ){
+                            RESULT = id;
                         }
                         else{
                             manejoError("El id: "+id+" asignado a la cantidad del arreglo no existe o no ha sido creado", "semántico");
-                            RESULT = null; 
+                            RESULT = "error_semantico";
                         }
                     :} ;
 
@@ -578,11 +710,11 @@ cantidadArreglo ::=     ENTERO:e
 asignaElementoArreglo ::=   expArreglo EQUIV operacion;
 
 expArreglo  ::=     ID:id LPARENT_CUAD cantidadArreglo:cant RPARENT_CUAD 
-                    {:  if(cant != null){
-                            RESULT = id.toString();
+                    {:  if(!cant.equals("error_semantico")){
+                            RESULT = id.toString()+"["+cant.toString()+"]";
                         }
                         else{
-                            RESULT = null;
+                            RESULT = "error_semantico";
                         }
                     :} ;
                        

@@ -1,34 +1,11 @@
 -------------------------
 
-Tabla de símbolos: otraFun
-Valores: tipo:funcion: int
-Parámetro: a: int
-a: int
-
--------------------------
-
-Tabla de símbolos: main
+Tabla de sÃ­mbolos: main
 Valores: tipo:main: int
-miChar: char
-str1: string
-fl1: float
-in1: int
-a: int
-b: float
-fl2: float
-arr: int
-arr2: char
-test: float
-bl0: boolean
-bl1: boolean
+bandera: boolean
+bandera2: boolean
+operacion: int
+array1[10]: int
+array2[5]: char
 
--------------------------
-
-Tabla de símbolos: miOtraFun
-Valores: tipo:funcion: float
-a: int
-ch33: char
-str2: string
-x22: int
-
-El archivo fuente tiene errores, no puede ser generado por la gramática.
+El archivo fuente tiene errores, no puede ser generado por la gramÃ¡tica.

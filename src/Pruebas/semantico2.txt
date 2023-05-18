@@ -2,8 +2,16 @@ int main(){
 /_
 Comentario 1
 _/
-    float fl1$
-	int in1 = --fl1 * -14 / ++2 + 7 - 15$
+    @char in1 = '!'$
+    @string var = "hola"$
+    @string var2 = 10$
+
+    boolean bandera = false$
+    boolean bandera2 = (10.0>=2.2) ^ (!bandera)$
+    int operacion = (2 + 4) / (8**7) * (120 * 30)$
+    int array1[10]$
+    char array2[5]$
+    int array3[-2]$
 
     return 1$
 

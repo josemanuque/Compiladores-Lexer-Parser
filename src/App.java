@@ -26,8 +26,8 @@ public class App {
         MainJflexCup main = new MainJflexCup();
 
         // Pruebas
-        main.runLexer(basePath + "/src/Pruebas/semantico.txt");
-        main.runParser(basePath + "/src/Pruebas/semantico.txt");
+        main.runLexer(basePath + "/src/Pruebas/semantico2.txt");
+        main.runParser(basePath + "/src/Pruebas/semantico2.txt");
     }
 
     public static void main(String[] args) throws Exception{
