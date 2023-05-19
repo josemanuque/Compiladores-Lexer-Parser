@@ -2,10 +2,13 @@
 
 Tabla de símbolos: main
 Valores: tipo:main: int
+var: char
 bandera: boolean
 bandera2: boolean
 operacion: int
-array1[10]: int
-array2[5]: char
+array1: int: 10
+array2: char: 5
+array3: int: 3
+array4: char: 2
 
-El archivo fuente tiene errores, no puede ser generado por la gramática.
+El archivo puede ser generado por la gramática.
