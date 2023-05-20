@@ -670,10 +670,14 @@ asignaArreglo ::=       asignaElementoArreglo FINEXP
                     |   creaAsignaArreglo FINEXP ;
 
 arregloSinTam ::=       tipoVarSubset:tip ID:id LPARENT_CUAD RPARENT_CUAD 
-                    {:  if(buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id") == null ){ // Análisis semántico
+                    {:  // ++++ Análisis semántico ++++
+                        if(buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id") == null ){ // Análisis semántico
+                            // ++++ Código 3D ++++
+                            codIn3D.append("\ndata_"+tip.toString()+" "+id.toString());
                             RESULT = id.toString()+": "+tip.toString();
                         }
                         else{
+                            //Manejo error semántico
                             manejoError("El ID: "+id+" ya ha sido utilizado en otra creación de variable dentro de la función: "+currentHash, "semántico");
                             RESULT = null;
                         }
@@ -724,7 +728,42 @@ creaAsignaArreglo ::=       tipoArreglo:parteIzArreglo EQUIV INIBLOQUE arregloVa
                                     RESULT = "error_semantico";
                                 }
                             :}
-                        |   arregloSinTam:a EQUIV INIBLOQUE arregloValores FINBLOQUE {: RESULT = a; :}
+                        |   arregloSinTam:parteIzArreglo EQUIV INIBLOQUE arregloValores FINBLOQUE 
+                            {:  if(!parteIzArreglo.toString().equals("error_semantico")){
+                                    String[] partes_parteIzArr = parteIzArreglo.toString().split(": ");
+                                    int tamañoArreglo = elementosArray.size();
+                                    // +++ Tabla de símbolos ++++ 
+                                    listaTablaSimbolos.get(currentHash).add(partes_parteIzArr[0].toString()+": "+partes_parteIzArr[1].toString()+": "+String.valueOf(tamañoArreglo));
+                                    // ++++ Análisis semántico ++++ 
+                                    String validacion = verificarTipo_elementosArray(elementosArray, partes_parteIzArr[1]);
+                                    if(validacion == null){
+                                        // ++++ Código 3D ++++
+                                        int j = elementosArray.size()-1;
+                                        for(int i = 0; i < elementosArray.size();i++){
+                                            String temp = "t"+(currentTemp++);
+                                            String[] partes_elemArr = elementosArray.get(i).split(": ");
+                                            codIn3D.append("\n"+temp+" = "+partes_elemArr[0].toString());
+                                            codIn3D.append("\n"+partes_parteIzArr[0]+"["+j+"]"+" = "+temp);
+                                            j--;
+                                        }
+                                        elementosArray.clear();
+                                        //RESULT = "Hola";
+                                    }
+                                    else if(validacion.equals("error_semantico")){
+                                        elementosArray.clear();
+                                        RESULT = "error_semantico";
+                                    }
+                                    else{
+                                        // Manejo error semántico
+                                        elementosArray.clear();
+                                        manejoError("El elemento: "+validacion+" del array tiene un tipo de dato distinto al definido en la declaración del array", "semántico");
+                                        RESULT = "error_semantico";
+                                    }
+                                }
+                                else{
+                                    RESULT = "error_semantico";
+                                }
+                            :}
                         |   arregloSinTam:a FINBLOQUE error {: manejoError("No se puede declarar un arreglo sin tamaño.", "sintáctico"); :};
 
 

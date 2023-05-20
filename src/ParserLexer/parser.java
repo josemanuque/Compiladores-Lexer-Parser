@@ -2481,10 +2481,14 @@ class CUP$parser$actions {
 		int idleft = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-2)).left;
 		int idright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-2)).right;
 		Object id = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-2)).value;
-		  if(buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id") == null ){ // Análisis semántico
+		  // ++++ Análisis semántico ++++
+                        if(buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id") == null ){ // Análisis semántico
+                            // ++++ Código 3D ++++
+                            codIn3D.append("\ndata_"+tip.toString()+" "+id.toString());
                             RESULT = id.toString()+": "+tip.toString();
                         }
                         else{
+                            //Manejo error semántico
                             manejoError("El ID: "+id+" ya ha sido utilizado en otra creación de variable dentro de la función: "+currentHash, "semántico");
                             RESULT = null;
                         }
@@ -2558,10 +2562,45 @@ class CUP$parser$actions {
           case 138: // creaAsignaArreglo ::= arregloSinTam EQUIV INIBLOQUE arregloValores FINBLOQUE 
             {
               Object RESULT =null;
-		int aleft = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-4)).left;
-		int aright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-4)).right;
-		Object a = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-4)).value;
-		 RESULT = a; 
+		int parteIzArregloleft = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-4)).left;
+		int parteIzArregloright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-4)).right;
+		Object parteIzArreglo = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-4)).value;
+		  if(!parteIzArreglo.toString().equals("error_semantico")){
+                                    String[] partes_parteIzArr = parteIzArreglo.toString().split(": ");
+                                    int tamañoArreglo = elementosArray.size();
+                                    String tamaño = String.valueOf(tamañoArreglo);
+                                    // +++ Tabla de símbolos ++++ 
+                                    listaTablaSimbolos.get(currentHash).add(partes_parteIzArr[0].toString()+": "+partes_parteIzArr[1].toString()+": "+String.valueOf(tamañoArreglo));
+                                    // ++++ Análisis semántico ++++ 
+                                    String validacion = verificarTipo_elementosArray(elementosArray, partes_parteIzArr[1]);
+                                    if(validacion == null){
+                                        // ++++ Código 3D ++++
+                                        int j = elementosArray.size()-1;
+                                        for(int i = 0; i < elementosArray.size();i++){
+                                            String temp = "t"+(currentTemp++);
+                                            String[] partes_elemArr = elementosArray.get(i).split(": ");
+                                            codIn3D.append("\n"+temp+" = "+partes_elemArr[0].toString());
+                                            codIn3D.append("\n"+partes_parteIzArr[0]+"["+j+"]"+" = "+temp);
+                                            j--;
+                                        }
+                                        elementosArray.clear();
+                                        //RESULT = "Hola";
+                                    }
+                                    else if(validacion.equals("error_semantico")){
+                                        elementosArray.clear();
+                                        RESULT = "error_semantico";
+                                    }
+                                    else{
+                                        // Manejo error semántico
+                                        elementosArray.clear();
+                                        manejoError("El elemento: "+validacion+" del array tiene un tipo de dato distinto al definido en la declaración del array", "semántico");
+                                        RESULT = "error_semantico";
+                                    }
+                                }
+                                else{
+                                    RESULT = "error_semantico";
+                                }
+                            
               CUP$parser$result = parser.getSymbolFactory().newSymbol("creaAsignaArreglo",60, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-4)), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
           return CUP$parser$result;

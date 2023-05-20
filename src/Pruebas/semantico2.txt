@@ -15,6 +15,8 @@ _/
     int array3[3] = {1,2,3}$
     char array4[2] = {var, 'b'}$
     array1[0] = 1 * 2 / 67$
+    int array[] = {1,2,3,4,5}$
+    array[4] = 0$
 
     return 1$
 

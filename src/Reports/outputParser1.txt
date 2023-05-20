@@ -10,5 +10,6 @@ array1: int: 10
 array2: char: 5
 array3: int: 3
 array4: char: 2
+array: int: 5
 
 El archivo puede ser generado por la gramática.
