@@ -17,9 +17,13 @@ parser code {:
     Lexer lex;
     Symbol token;
     Boolean errores = false;
+    private HashMap<String, ArrayList<String>> listaTablaSimbolos = new HashMap<String, ArrayList<String>>();
+    String currentHash;
     int currentTemp = 0;
     StringBuilder codIn3D = new StringBuilder();
     ArrayList<String> elementosArray = new ArrayList<>();
+    int contador_for = 0;
+    String fatherCurrentHash = null;
 
     /* Constructor del parser, recibe como parámetro el lexer que se va a utilizar 
         Entradas: Lexer lex
@@ -41,9 +45,6 @@ parser code {:
     public boolean getErrores(){
         return errores;
     }
-
-    private HashMap<String, ArrayList<String>> listaTablaSimbolos = new HashMap<String, ArrayList<String>>();
-    String currentHash;
 
     /* Método que se encarga de imprimir la tabla de símbolos
         Entradas: Ninguna
@@ -220,10 +221,11 @@ non terminal operacion, operacionAritmetica, operadorArit, operandoArit;
 non terminal operacionLogica, operadorLog, operandoLog, negacion;
 non terminal operacionRelacional, operadorRel;
 non terminal control, ciclo, condicional, condIf, condsElif, condElif, condElse;
-non terminal cicloDoWhile, cicloFor, bloqueCiclo, sentenciasCiclo, sentenciaCiclo, breakCiclo;
+non terminal cicloDoWhile, cicloFor, breakCiclo;
 non terminal arregloSinTam, asignaElementoArreglo, expArreglo, cantidadArreglo; 
 non terminal asignaArreglo, arregloValores, arregloValor, tipoArreglo, creaAsignaArreglo, creaArreglo;
 non terminal tipoVarSubset;
+non terminal beginFor, endFor, beginCiclo, endCiclo, beginCondicion, beginAlter, endAlter, evaluaCondicion;
 
 //non terminal nuevoLenguaje, funciones, tipoVar, creaVar, arregloConTam, parteIzAsig;
 //non terminal nuevoLenguaje, funciones, tipoVar, creaVar, arregloConTam, parteIzAsig;
@@ -248,7 +250,7 @@ nuevoLenguaje ::=       funcionMain {: imprimirTablaSimbolos(); imprimirCodigo3D
                     |   funcionMain funciones {: imprimirTablaSimbolos(); imprimirCodigo3D(); :} ;
 
 
-funcionMain ::= iniFun LPARENT RPARENT INIBLOQUE bloque FINBLOQUE 
+funcionMain ::=     iniFun LPARENT RPARENT INIBLOQUE bloque FINBLOQUE 
                 |   error {: manejoError("Error de creación de función main", "sintáctico"); :};
 
 funciones ::=       funcion {: :}
@@ -278,7 +280,6 @@ iniFun ::= tipoRet:tip identifier:id
            listaSimbolos.add(tipoTabla);
            listaTablaSimbolos.put(currentHash, listaSimbolos);
            RESULT = tip.toString()+" "+id.toString();
-
 :};
 
 identifier ::=  MAIN {: RESULT = "main";:}
@@ -315,67 +316,184 @@ sentencia ::=       creaVar FINEXP
                 |   returnFunc
                 |   creaArreglo
                 |   asignaArreglo
+                |   breakCiclo
                 |   error {: manejoError("Error de sentencia","sintáctico"); :};
 
-usaVar ::=      ID FINEXP
+usaVar ::=      ID:id FINEXP
+                {:  // ++++ Análisis semántico ++++
+                    if(buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id") != null){
+                        // ++++ Código 3D ++++
+                        String temp = "t"+(currentTemp++); 
+                        codIn3D.append("\n"+temp+" = "+id.toString());
+                    }
+                    else if(fatherCurrentHash != null && buscarID_o_tipoID(listaTablaSimbolos.get(fatherCurrentHash), id.toString(), "id") != null ){
+                        // ++++ Código 3D ++++
+                        String temp = "t"+(currentTemp++); 
+                        codIn3D.append("\n"+temp+" = "+id.toString());
+                    }
+                    else{
+                        // Manejo error semántico 
+                        manejoError("El ID: "+id.toString()+" no existe o no ha sido creado dentro de la función "+currentHash, "semántico");
+                    } 
+                :}
             |   PLUS_UN ID:id FINEXP 
-            {:  
-                String tip = buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id");
-                if(tip != null){ // Análisis semántico
-                    RESULT = id.toString()+": "+tip;
-                }
-                else{
-                    manejoError("El ID: "+id+" no se ha declarado dentro de la función: "+currentHash, "semántico");
-                    RESULT = null;
-                } 
-            :}
+                {:  // ++++ Análisis semántico ++++
+                    if(buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id") != null){
+                        // ++++ Código 3D ++++
+                        String temp1 = "t"+(currentTemp++);
+                        String temp2 = "t"+(currentTemp++);
+                        String temp3 = "t"+(currentTemp++);
+                        codIn3D.append("\n"+temp1+" = "+id.toString());
+                        codIn3D.append("\n"+temp2+" = 1");
+                        codIn3D.append("\n"+temp3+" = "+temp1+"+"+temp2);
+                        codIn3D.append("\n"+id.toString()+" = "+temp3);
+                    }
+                    else if(fatherCurrentHash != null && buscarID_o_tipoID(listaTablaSimbolos.get(fatherCurrentHash), id.toString(), "id") != null ){
+                        // ++++ Código 3D ++++
+                        String temp1 = "t"+(currentTemp++);
+                        String temp2 = "t"+(currentTemp++);
+                        String temp3 = "t"+(currentTemp++);
+                        codIn3D.append("\n"+temp1+" = "+id.toString());
+                        codIn3D.append("\n"+temp2+" = 1");
+                        codIn3D.append("\n"+temp3+" = "+temp1+"+"+temp2);
+                        codIn3D.append("\n"+id.toString()+" = "+temp3);
+                    }
+                    else{
+                        // Manejo error semántico 
+                        manejoError("El ID: "+id.toString()+" no existe o no ha sido creado dentro de la función "+currentHash, "semántico");
+                    } 
+                :}
             |   MINUS_UN ID:id FINEXP
-            {:  
-                String tip = buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id");
-                if(tip != null){ // Análisis semántico
-                    RESULT = id.toString()+": "+tip;
-                }
-                else{
-                    manejoError("El ID: "+id+" no se ha declarado dentro de la función: "+currentHash, "semántico");
-                    RESULT = null;
-                } 
-            :} ;
+                {:  // ++++ Análisis semántico ++++
+                    if(buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id") != null){
+                        // ++++ Código 3D ++++
+                        String temp1 = "t"+(currentTemp++);
+                        String temp2 = "t"+(currentTemp++);
+                        String temp3 = "t"+(currentTemp++);
+                        codIn3D.append("\n"+temp1+" = "+id.toString());
+                        codIn3D.append("\n"+temp2+" = 1");
+                        codIn3D.append("\n"+temp3+" = "+temp1+"-"+temp2);
+                        codIn3D.append("\n"+id.toString()+" = "+temp3);
+                    }
+                    else if(fatherCurrentHash != null && buscarID_o_tipoID(listaTablaSimbolos.get(fatherCurrentHash), id.toString(), "id") != null ){
+                        // ++++ Código 3D ++++
+                        String temp1 = "t"+(currentTemp++);
+                        String temp2 = "t"+(currentTemp++);
+                        String temp3 = "t"+(currentTemp++);
+                        codIn3D.append("\n"+temp1+" = "+id.toString());
+                        codIn3D.append("\n"+temp2+" = 1");
+                        codIn3D.append("\n"+temp3+" = "+temp1+"-"+temp2);
+                        codIn3D.append("\n"+id.toString()+" = "+temp3);
+                    }
+                    else{
+                        // Manejo error semántico 
+                        manejoError("El ID: "+id.toString()+" no existe o no ha sido creado dentro de la función "+currentHash, "semántico");
+                    } 
+                :} 
+                ;
 
 creaVar ::=     tipoVar:tip ID:id  
                {:   // ++++ Análisis semántico ++++
-                    if(buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id") == null){ 
-                        // ++++ Código 3D ++++
-                        codIn3D.append("\ndata_"+tip.toString()+" "+id.toString());
-                        // +++ Tabla de símbolos ++++ 
-                        listaTablaSimbolos.get(currentHash).add(id.toString()+": "+tip.toString());
-                        RESULT = id.toString()+": "+tip.toString();
+                    if(fatherCurrentHash != null && buscarID_o_tipoID(listaTablaSimbolos.get(fatherCurrentHash), id.toString(), "id") == null){
+                        if(buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id") == null ) {
+                            // ++++ Código 3D ++++
+                            codIn3D.append("\ndata_"+tip.toString()+" "+id.toString());
+                            // +++ Tabla de símbolos ++++ 
+                            listaTablaSimbolos.get(currentHash).add(id.toString()+": "+tip.toString());
+                            RESULT = id.toString()+": "+tip.toString();
+                        }
+                        else{
+                            //Manejo error semántico
+                            manejoError("El ID: "+id+" ya ha sido utilizado en otra creación de variable dentro de "+currentHash, "semántico");
+                            RESULT = "error_semantico";
+                        }
+                    }
+                    else if(fatherCurrentHash == null && buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id") == null){
+                            // ++++ Código 3D ++++
+                            codIn3D.append("\ndata_"+tip.toString()+" "+id.toString());
+                            // +++ Tabla de símbolos ++++ 
+                            listaTablaSimbolos.get(currentHash).add(id.toString()+": "+tip.toString());
+                            RESULT = id.toString()+": "+tip.toString();
                     }
                     else{
                         //Manejo error semántico
-                        manejoError("El ID: "+id+" ya ha sido utilizado en otra creación de variable dentro de la función: "+currentHash, "semántico");
+                        manejoError("El ID: "+id+" ya ha sido utilizado en otra creación de variable dentro de "+fatherCurrentHash, "semántico");
                         RESULT = "error_semantico";
                     }
-                :}
+                :} 
 
             |   tipoVarSubset:tip ID:id  
-                {: // ++++ Análisis semántico ++++
-                    if(buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id") == null){ 
-                        // ++++ Código 3D ++++
-                        codIn3D.append("\ndata_"+tip.toString()+" "+id.toString());
-                        // +++ Tabla de símbolos ++++ 
-                        listaTablaSimbolos.get(currentHash).add(id.toString()+": "+tip.toString());
-                        RESULT = id.toString()+": "+tip.toString();
+                {:  // ++++ Análisis semántico ++++
+                    if(fatherCurrentHash != null && buscarID_o_tipoID(listaTablaSimbolos.get(fatherCurrentHash), id.toString(), "id") == null){
+                        if(buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id") == null ) {
+                            // ++++ Código 3D ++++
+                            codIn3D.append("\ndata_"+tip.toString()+" "+id.toString());
+                            // +++ Tabla de símbolos ++++ 
+                            listaTablaSimbolos.get(currentHash).add(id.toString()+": "+tip.toString());
+                            RESULT = id.toString()+": "+tip.toString();
+                        }
+                        else{
+                            //Manejo error semántico
+                            manejoError("El ID: "+id+" ya ha sido utilizado en otra creación de variable dentro de "+currentHash, "semántico");
+                            RESULT = "error_semantico";
+                        }
+                    }
+                    else if(fatherCurrentHash == null && buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id") == null){
+                            // ++++ Código 3D ++++
+                            codIn3D.append("\ndata_"+tip.toString()+" "+id.toString());
+                            // +++ Tabla de símbolos ++++ 
+                            listaTablaSimbolos.get(currentHash).add(id.toString()+": "+tip.toString());
+                            RESULT = id.toString()+": "+tip.toString();
                     }
                     else{
                         //Manejo error semántico
-                        manejoError("El ID: "+id+" ya ha sido utilizado en otra creación de variable dentro de la función: "+currentHash, "semántico");
+                        manejoError("El ID: "+id+" ya ha sido utilizado en otra creación de variable dentro de "+fatherCurrentHash, "semántico");
                         RESULT = "error_semantico";
                     }
-                :} ;
+                :}  ;
 
 asignacion ::=      creaAsignaVar FINEXP
-                |   ID:n EQUIV:n2 literal:n3 FINEXP {::}
-                |   ID:n EQUIV:n2 input:n3 FINEXP {::};
+                |   ID:id EQUIV literal:lit FINEXP 
+                    {:  // ++++ Análisis semántico ++++
+                        if(fatherCurrentHash != null){
+                            if(buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id") == null && buscarID_o_tipoID(listaTablaSimbolos.get(fatherCurrentHash), id.toString(), "id") != null){ 
+                                if(!lit.toString().equals("error_semantico")){
+                                    String[] partes = lit.toString().split("::");
+                                    // ++++ Código 3D ++++
+                                    String temp = "t"+(currentTemp++); 
+                                    codIn3D.append("\n"+id.toString()+" = "+partes[1].toString());
+                                    RESULT = partes[0].toString()+"::"+temp; 
+                                }
+                                else{
+                                    RESULT = "error_semantico";
+                                }
+                            }
+                            else{
+                                //Manejo error semántico
+                                manejoError("El ID: "+id+" no ha sido creado dentro de la función "+fatherCurrentHash, "semántico");
+                                RESULT = "error_semantico";
+                            }
+                        }
+                        else if(fatherCurrentHash == null && buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id") != null){
+                            if(!lit.toString().equals("error_semantico")){
+                                String[] partes = lit.toString().split("::");
+                                // ++++ Código 3D ++++
+                                String temp = "t"+(currentTemp++); 
+                                codIn3D.append("\n"+id.toString()+" = "+partes[1].toString());
+                                RESULT = partes[0].toString()+"::"+temp; 
+                            }
+                            else{
+                                RESULT = "error_semantico";
+                            }
+                        }
+                        else{
+                            //Manejo error semántico
+                            manejoError("El ID: "+id+" no ha sido creado dentro de la función", "semántico");
+                            RESULT = "error_semantico";
+                        }
+                    :} 
+                    
+                |   ID EQUIV input FINEXP ; //*****************************************FALTAAAAAA ANALISIS SEMANTICO Y 3D;
 
 creaAsignaVar ::=    creaVar:cv EQUIV literal:lit 
                      {: // ++++ Análisis semántico ++++
@@ -383,14 +501,18 @@ creaAsignaVar ::=    creaVar:cv EQUIV literal:lit
                             String[] partes_cv = cv.toString().split(": ");
                             String[] partes_lit = lit.toString().split("::");
                             if(!partes_cv[1].equals(partes_lit[0])){
-                                System.out.println("++++++El tipo de la variable es: "+partes_cv[1]);
-                                System.out.println("++++++El tipo del literal es: "+partes_lit[0]);
+                                System.out.println("++++++ El tipo de la variable es: "+partes_cv[1]);
+                                System.out.println("++++++ El tipo del literal es: "+partes_lit[0]);
                                 manejoError("El tipo del ID: "+partes_cv[0]+" no corresponde con los valores asignados", "semántico") ;
+                                RESULT = "error_semantico";
                             }
-                            else{
+                            else{ 
                                 // ++++ Código 3D ++++
                                 codIn3D.append("\n"+partes_cv[0]+" = "+partes_lit[1]);
                             }
+                        }
+                        else{
+                            RESULT = "error_semantico";
                         }
                      :}
                   |  creaVar:cv EQUIV input {: RESULT = cv ; :} ; //***********************************FALTAAAAA codigo 3D y semántico
@@ -417,8 +539,40 @@ literal ::=     operacion:op {:RESULT = op ;:}// operacion contiene operando ari
 operacion ::=       operacionLogica:opLog {: RESULT = opLog; :} ;
 
 operacionAritmetica ::=     operandoArit:opeArit {: RESULT = opeArit; :}
-                        |   PLUS_UN operandoArit:opeArit {: RESULT = opeArit; :}
-                        |   MINUS_UN operandoArit:opeArit {: RESULT = opeArit; :}
+                        |   PLUS_UN operandoArit:opeArit 
+                            {:  // ++++ Análisis semántico ++++
+                                if(!opeArit.toString().equals("error_semantico")){
+                                    String[] partes = opeArit.toString().split("::");
+                                    // ++++ Código 3D ++++
+                                    String temp1 = "t"+(currentTemp++);
+                                    String temp2 = "t"+(currentTemp++);
+                                    codIn3D.append("\n"+temp1+" = 1");
+                                    codIn3D.append("\n"+temp2+" = "+partes[1].toString()+" + "+temp1);
+                                    codIn3D.append("\n"+partes[2].toString()+" = "+temp2);
+                                    RESULT = partes[0].toString()+"::"+temp2;
+                                }
+                                else{
+                                    RESULT = "error_semantico";
+                                }
+                            :}
+
+                        |   MINUS_UN operandoArit:opeArit 
+                            {:  // ++++ Análisis semántico ++++
+                                if(!opeArit.toString().equals("error_semantico")){
+                                    String[] partes = opeArit.toString().split("::");
+                                    // ++++ Código 3D ++++
+                                    String temp1 = "t"+(currentTemp++);
+                                    String temp2 = "t"+(currentTemp++);
+                                    codIn3D.append("\n"+temp1+" = 1");
+                                    codIn3D.append("\n"+temp2+" = "+partes[1].toString()+" - "+temp1);
+                                    codIn3D.append("\n"+partes[2].toString()+" = "+temp2);
+                                    RESULT = partes[0].toString()+"::"+temp2;
+                                }
+                                else{
+                                    RESULT = "error_semantico";
+                                }
+                            :}
+
                         |   operacionAritmetica:operacion1 operadorArit:operador operacionAritmetica:operacion2
                             {: if (!operacion1.equals("error_semantico") && !operacion2.equals("error_semantico")){
                                     String[] op1_partes = operacion1.toString().split("::");
@@ -431,8 +585,8 @@ operacionAritmetica ::=     operandoArit:opeArit {: RESULT = opeArit; :}
                                         RESULT = op1_partes[0]+"::"+temp;
                                     }
                                     else if(!op1_partes[0].equals(op2_partes[0])){
-                                        System.out.println("+++++++++El tipo de la operación Artimética 1 es: "+operacion1.toString());
-                                        System.out.println("+++++++++El tipo de la operación Aritmética 2 es: "+operacion2.toString());
+                                        System.out.println("+++++++++El tipo de la operación Artimética 1 es: "+op1_partes[0].toString());
+                                        System.out.println("+++++++++El tipo de la operación Aritmética 2 es: "+op2_partes[0].toString());
                                         manejoError("No se pueden operar valores o variables de diferentes tipos de datos", "semántico");
                                         RESULT = "error_semantico";
                                     }
@@ -489,24 +643,56 @@ operandoArit ::=        ENTERO:ent
                             // ++++ Código 3D ++++
                             String temp = "t"+(currentTemp++); 
                             codIn3D.append("\n"+temp+" = "+id.toString());
-                            RESULT = tipo+"::"+temp; 
-                        } 
+                            RESULT = tipo+"::"+temp+"::"+id.toString(); 
+                        }
+                        else if (fatherCurrentHash != null && buscarID_o_tipoID(listaTablaSimbolos.get(fatherCurrentHash), id.toString(), "id") != null ){
+                            // ++++ Código 3D ++++
+                            String tipo2 = buscarID_o_tipoID(listaTablaSimbolos.get(fatherCurrentHash), id.toString(), "id");
+                            String temp = "t"+(currentTemp++); 
+                            codIn3D.append("\n"+temp+" = "+id.toString());
+                            RESULT = tipo2+"::"+temp+"::"+id.toString();
+                        }
                         else{
                             manejoError("El id: "+id+" no existe o no ha sido creado", "semántico");
                             RESULT = "error_semantico";
                         } 
                     :}
+
                     |   llamaFunc //***************************************FALTA ANALISIS SEMANTICO*********************************************************
-                    |   expArreglo:id //************************************FALTA CAMBIAR******************
-                    {:  String tipo = buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id");
-                        if( tipo != null){
-                            RESULT = tipo;
+                    |   expArreglo:expArr
+                    {:  if(!expArr.toString().equals("error_semantico")){
+                            String[] partes = expArr.toString().split("::");
+                            String tipo = buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), partes[0].toString(), "id");
+                            if( tipo != null){
+                                // ++++ Código 3D ++++
+                                String temp = "t"+(currentTemp++); 
+                                codIn3D.append("\n"+temp+" = "+partes[0].toString()+"["+partes[1].toString()+"]");
+                                RESULT = tipo+"::"+temp;
+                            }
+                            else if(fatherCurrentHash != null){
+                                String tipo2 = buscarID_o_tipoID(listaTablaSimbolos.get(fatherCurrentHash), partes[0].toString(), "id");
+                                if(tipo2 != null){
+                                    // ++++ Código 3D ++++
+                                    String temp = "t"+(currentTemp++); 
+                                    codIn3D.append("\n"+temp+" = "+partes[0].toString()+"["+partes[1].toString()+"]");
+                                    RESULT = tipo2+"::"+temp;
+                                }
+                                else{
+                                    // Manejo error semántico
+                                    manejoError("El id: "+partes[0].toString()+" no existe o no ha sido creado", "semántico");
+                                    RESULT = "error_semantico";
+                                }
+                            }
+                            else{
+                                // Manejo error semántico
+                                manejoError("El id: "+partes[0].toString()+" no existe o no ha sido creado", "semántico");
+                                RESULT = "error_semantico";
+                            }
                         }
                         else{
-                            manejoError("El id: "+id+" no existe o no ha sido creado", "semántico");
-                            RESULT = null;
+                            RESULT = "error_semantico";
                         }
-                        :} ;
+                    :} ;
 
 operacionRelacional ::=     operacionAritmetica:operacion1 operadorRel:operador operacionAritmetica:operacion2 
                             {: if (!operacion1.equals("error_semantico") && !operacion2.equals("error_semantico")){
@@ -647,20 +833,44 @@ ciclo ::= cicloDoWhile
         | cicloFor;
 
 
-cicloDoWhile ::=    DO INIBLOQUE bloqueCiclo FINBLOQUE WHILE LPARENT operacionLogica RPARENT FINEXP;
+cicloDoWhile ::=    DO INIBLOQUE bloque FINBLOQUE WHILE LPARENT operacionLogica RPARENT FINEXP;
 
-cicloFor ::=      FOR LPARENT creaAsignaVar FINEXP operacionLogica FINEXP operacionAritmetica RPARENT INIBLOQUE bloqueCiclo FINBLOQUE
-                | FOR LPARENT creaAsignaVar FINEXP operacionLogica FINEXP asignacion RPARENT INIBLOQUE bloqueCiclo FINBLOQUE;
+// Qué pasa con los fors anidados ??????
+cicloFor ::=      beginFor FOR LPARENT creaAsignaVar FINEXP beginCondicion operacionLogica evaluaCondicion FINEXP beginAlter operacionAritmetica endAlter RPARENT INIBLOQUE beginCiclo bloque endCiclo FINBLOQUE endFor
+                | beginFor FOR LPARENT creaAsignaVar FINEXP beginCondicion operacionLogica evaluaCondicion FINEXP beginAlter asignacion endAlter RPARENT INIBLOQUE beginCiclo bloque endCiclo FINBLOQUE endFor ;
 
-bloqueCiclo ::= sentenciasCiclo;
+beginFor ::= {: String tipoTabla = "tipo:ciclo:for";
+                ArrayList<String> listaSimbolos = new ArrayList<String>();
+                fatherCurrentHash = currentHash;
+                currentHash = "for_"+(++contador_for)+"_"+fatherCurrentHash;
+                listaSimbolos.add(tipoTabla);
+                listaTablaSimbolos.put(currentHash, listaSimbolos);
+                codIn3D.append("\n_begin_for_"+(contador_for)+":");
+            :} ;
 
-sentenciasCiclo ::=     sentenciaCiclo
-                    |   sentenciaCiclo sentenciasCiclo;
+endFor ::=  {:  currentHash = fatherCurrentHash;
+                fatherCurrentHash = null;                
+                codIn3D.append("\n_end_for_"+(contador_for)+":"); 
+            :} ;
 
-sentenciaCiclo ::=      sentencia
-                    |   breakCiclo;
+beginCiclo ::= {: codIn3D.append("\n_begin_for_"+(contador_for)+"_bloque:"); :}; 
+
+endCiclo ::= {: codIn3D.append("\ngoto _begin_for_"+(contador_for)+"_alter");
+                codIn3D.append("\n_end_for_"+(contador_for)+"_bloque:"); :} ;
+
+beginCondicion ::= {: codIn3D.append("\n_begin_for_"+(contador_for)+"_condicion:"); :};
+
+evaluaCondicion ::= {: int temporalAnterior = currentTemp;
+                       codIn3D.append("\nif t"+(--temporalAnterior)+" goto _begin_for_"+(contador_for)+"_bloque");
+                       codIn3D.append("\ngoto _end_for_"+(contador_for)+"_bloque"); :} ;
+                    
+beginAlter ::= {: codIn3D.append("\n_begin_for_"+(contador_for)+"_alter:"); :};
+
+endAlter ::= {: codIn3D.append("\ngoto _begin_for_"+(contador_for)+"_condicion"); :};
+
 
 breakCiclo ::= BREAK FINEXP;
+
 returnFunc ::= RETURN literal FINEXP;
 
 
@@ -671,15 +881,27 @@ asignaArreglo ::=       asignaElementoArreglo FINEXP
 
 arregloSinTam ::=       tipoVarSubset:tip ID:id LPARENT_CUAD RPARENT_CUAD 
                     {:  // ++++ Análisis semántico ++++
-                        if(buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id") == null ){ // Análisis semántico
+                        if(fatherCurrentHash != null){
+                            if(buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id") == null && buscarID_o_tipoID(listaTablaSimbolos.get(fatherCurrentHash), id.toString(), "id") == null){ 
+                                // ++++ Código 3D ++++
+                                codIn3D.append("\ndata_"+tip.toString()+" "+id.toString());
+                                RESULT = id.toString()+": "+tip.toString();
+                            }
+                            else{
+                                //Manejo error semántico
+                                manejoError("El ID: "+id+" ya ha sido utilizado en otra creación de variable dentro de la función", "semántico");
+                                RESULT = "error_semantico";
+                            }
+                        }
+                        else if(fatherCurrentHash == null && buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id") == null){
                             // ++++ Código 3D ++++
                             codIn3D.append("\ndata_"+tip.toString()+" "+id.toString());
                             RESULT = id.toString()+": "+tip.toString();
                         }
                         else{
                             //Manejo error semántico
-                            manejoError("El ID: "+id+" ya ha sido utilizado en otra creación de variable dentro de la función: "+currentHash, "semántico");
-                            RESULT = null;
+                            manejoError("El ID: "+id+" ya ha sido utilizado en otra creación de variable dentro de la función", "semántico");
+                            RESULT = "error_semantico";
                         }
                     :} ;
                      
@@ -771,16 +993,30 @@ tipoArreglo ::=     tipoVarSubset:tip expArreglo:exp
                 {:  if(!exp.equals("error_semantico")){
                         // ++++ Análisis semántico ++++ 
                         String[] partes = exp.toString().split("::"); 
-                        if(buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), partes[0].toString(), "id") == null ){
-                            listaTablaSimbolos.get(currentHash).add(partes[0].toString()+": "+tip.toString()+": "+partes[1].toString());
-                            // ++++ Código 3D ++++
-                            String temp = "t"+(currentTemp++); 
-                            codIn3D.append("\ndata_"+tip.toString()+" "+partes[0].toString());
-                            RESULT = partes[0].toString()+"::"+tip.toString()+"::"+temp+"::"+partes[1].toString();
+                        if(fatherCurrentHash != null){
+                            if(buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), partes[0].toString(), "id") == null && buscarID_o_tipoID(listaTablaSimbolos.get(fatherCurrentHash), partes[0].toString(), "id") == null){ 
+                                listaTablaSimbolos.get(currentHash).add(partes[0].toString()+": "+tip.toString()+": "+partes[1].toString());
+                                // ++++ Código 3D ++++
+                                String temp = "t"+(currentTemp++); 
+                                codIn3D.append("\ndata_"+tip.toString()+" "+partes[0].toString());
+                                RESULT = partes[0].toString()+"::"+tip.toString()+"::"+temp+"::"+partes[1].toString();
+                            }
+                            else{
+                                // Manejo error semántico
+                                manejoError("El ID: "+partes[0].toString()+" ya ha sido utilizado en otra creación de variable dentro de la función "+currentHash, "semántico");
+                                RESULT = "error_semantico";
+                            }
+                        }
+                        else if(fatherCurrentHash == null && buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), partes[0].toString(), "id") == null){
+                                listaTablaSimbolos.get(currentHash).add(partes[0].toString()+": "+tip.toString()+": "+partes[1].toString());
+                                // ++++ Código 3D ++++
+                                String temp = "t"+(currentTemp++); 
+                                codIn3D.append("\ndata_"+tip.toString()+" "+partes[0].toString());
+                                RESULT = partes[0].toString()+"::"+tip.toString()+"::"+temp+"::"+partes[1].toString();
                         }
                         else{
                             // Manejo error semántico
-                            manejoError("El ID: "+partes[0].toString()+" ya ha sido utilizado en otra creación de variable dentro de la función: "+currentHash, "semántico");
+                            manejoError("El ID: "+partes[0].toString()+" ya ha sido utilizado en otra creación de variable dentro de la función "+currentHash, "semántico");
                             RESULT = "error_semantico";
                         }
                     }
@@ -803,6 +1039,17 @@ arregloValor ::=        CARACTER:car {: RESULT = car.toString()+": "+"char"; :}
                         if(tipoId != null){
                             RESULT = id.toString()+": "+tipoId; 
                         }
+                        else if(tipoId == null && fatherCurrentHash != null){
+                            String tipoId2 = buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id");
+                            if(tipoId2 != null){
+                                RESULT = id.toString()+": "+tipoId2; 
+                            }
+                            else{
+                                // Manejo error semántico
+                                manejoError("El id: "+id+" no existe o no ha sido creado", "semántico");
+                                RESULT = id.toString()+": error_semantico";
+                            }
+                        }
                         else{
                             // Manejo error semántico
                             manejoError("El id: "+id+" no existe o no ha sido creado", "semántico");
@@ -815,7 +1062,7 @@ cantidadArreglo ::=     ENTERO:e
                        int ent = Integer.parseInt(entero);
                        // ++++ Análisis semántico ++++ 
                        if(ent >= 0){
-                            RESULT = e; 
+                            RESULT = e.toString()+"::int"; 
                         }
                         else{
                             manejoError("El número entero asignado a la cantidad del arreglo es negativo", "semántico");
@@ -825,32 +1072,113 @@ cantidadArreglo ::=     ENTERO:e
 
                     |   ID:id
                     {:  // ++++ Análisis semántico ++++
-                        if(buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id") != null ){
-                            RESULT = id;
+                        String tipoId = buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id"); 
+                        if(tipoId != null){
+                            RESULT = id.toString()+"::id"; 
+                        }
+                        else if(tipoId == null && fatherCurrentHash != null){
+                            String tipoId2 = buscarID_o_tipoID(listaTablaSimbolos.get(fatherCurrentHash), id.toString(), "id");
+                            if(tipoId2 != null){
+                                RESULT = id.toString()+"::id"; 
+                            }
+                            else{
+                                //Manejo de error semántico
+                                manejoError("El id: "+id+" asignado a la cantidad del arreglo no existe o no ha sido creado", "semántico");
+                                RESULT = "error_semantico";
+                            }
                         }
                         else{
                             //Manejo de error semántico
                             manejoError("El id: "+id+" asignado a la cantidad del arreglo no existe o no ha sido creado", "semántico");
                             RESULT = "error_semantico";
                         }
-                    :} ;
+                    :}  ;
 
-
+// ver que hacer cuando el array tiene una cantidad de tipo ID*****************************************
+// me da error ******* esta raro este código, arreglar con lo de primero revisar la tabla padre 
 asignaElementoArreglo ::=   expArreglo:exp EQUIV operacionAritmetica:op 
                             {:  if(!exp.equals("error_semantico") && !op.equals("error_semantico")){
                                     String[] partes = exp.toString().split("::");
-                                    // ++++ Análisis semántico ++++
-                                    String tipoArr = buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), partes[0].toString(), "id");
-                                    if( tipoArr != null ){
-                                        int limiteInferior = 0;
-                                        int limiteSuperior = Integer.parseInt(buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), partes[0].toString(), "tamañoArray"));
-                                        int pos = Integer.parseInt(partes[1].toString());
-                                        if(pos >= limiteInferior && pos < limiteSuperior){
-                                            String[] partesOp = op.toString().split("::");
+                                    String[] partesOp = op.toString().split("::");
+                                    if(fatherCurrentHash != null){
+                                        Boolean InPadre = buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), partes[0].toString(), "id") == null && buscarID_o_tipoID(listaTablaSimbolos.get(fatherCurrentHash), partes[0].toString(), "id") != null ;
+                                        Boolean InCurrent = buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), partes[0].toString(), "id") != null && buscarID_o_tipoID(listaTablaSimbolos.get(fatherCurrentHash), partes[0].toString(), "id") == null ;
+                                        if(InPadre | InCurrent){
+                                            if(partes[2].toString().equals("int")){
+                                                // ++++ Análisis semántico ++++
+                                                String tipoArr = buscarID_o_tipoID(listaTablaSimbolos.get(fatherCurrentHash), partes[0].toString(), "id");
+                                                int limiteInferior = 0;
+                                                int limiteSuperior = Integer.parseInt(buscarID_o_tipoID(listaTablaSimbolos.get(fatherCurrentHash), partes[0].toString(), "tamañoArray"));
+                                                int pos = Integer.parseInt(partes[1].toString());
+                                                if(pos >= limiteInferior && pos < limiteSuperior){
+                                                    if(tipoArr.equals(partesOp[0].toString())){
+                                                        // ++++ Código 3D ++++
+                                                        codIn3D.append("\n"+partes[0]+"["+partes[1].toString()+"]"+" = "+partesOp[1]);
+                                                        //RESULT = ;  /// +++++++++++++++++++++++++++++++ No sé si se ocupa el RESULT
+                                                    }
+                                                    else{
+                                                        //Manejo de error semántico
+                                                        manejoError("El valor asignado no coincide con el tipo de dato del array: "+partes[0].toString(), "semántico");
+                                                        RESULT = "error_semantico";
+                                                    }
+                                                }
+                                                else{
+                                                    //Manejo de error semántico
+                                                    manejoError("La posición : ["+partes[1]+"] está fuera del límite del tamaño del array", "semántico");
+                                                    RESULT = "error_semantico";
+                                                }
+                                            }
+                                            else{
+                                                String tipoArr = buscarID_o_tipoID(listaTablaSimbolos.get(fatherCurrentHash), partes[0].toString(), "id");
+                                                if(tipoArr.equals(partesOp[0].toString())){
+                                                        // ++++ Código 3D ++++
+                                                        codIn3D.append("\n"+partes[0]+"["+partes[1].toString()+"]"+" = "+partesOp[1]);
+                                                        //RESULT = ;  /// +++++++++++++++++++++++++++++++ No sé si se ocupa el RESULT
+                                                }
+                                                else{
+                                                    //Manejo de error semántico
+                                                    manejoError("El valor asignado no coincide con el tipo de dato del array: "+partes[0].toString(), "semántico");
+                                                    RESULT = "error_semantico";
+                                                }
+                                            }
+                                        }
+                                        else{
+                                            //Manejo de error semántico
+                                            manejoError("El array: "+partes[0].toString()+" no existe o no ha sido creado", "semántico");
+                                            RESULT = "error_semantico";
+                                        }
+                                    }
+                                    else if(fatherCurrentHash == null && buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), partes[0].toString(), "id") != null){
+                                        if(partes[2].toString().equals("int")){
+                                            // ++++ Análisis semántico ++++
+                                            String tipoArr = buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), partes[0].toString(), "id");
+                                            int limiteInferior = 0;
+                                            int limiteSuperior = Integer.parseInt(buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), partes[0].toString(), "tamañoArray"));
+                                            int pos = Integer.parseInt(partes[1].toString());
+                                            if(pos >= limiteInferior && pos < limiteSuperior){
+                                                if(tipoArr.equals(partesOp[0].toString())){
+                                                    // ++++ Código 3D ++++
+                                                    codIn3D.append("\n"+partes[0]+"["+partes[1].toString()+"]"+" = "+partesOp[1]);
+                                                    //RESULT = ;  /// +++++++++++++++++++++++++++++++ No sé si se ocupa el RESULT
+                                                }
+                                                else{
+                                                    //Manejo de error semántico
+                                                    manejoError("El valor asignado no coincide con el tipo de dato del array: "+partes[0].toString(), "semántico");
+                                                    RESULT = "error_semantico";
+                                                }
+                                            }
+                                            else{
+                                                //Manejo de error semántico
+                                                manejoError("La posición : ["+partes[1]+"] está fuera del límite del tamaño del array", "semántico");
+                                                RESULT = "error_semantico";
+                                            }
+                                        }
+                                        else{
+                                            String tipoArr = buscarID_o_tipoID(listaTablaSimbolos.get(fatherCurrentHash), partes[0].toString(), "id");
                                             if(tipoArr.equals(partesOp[0].toString())){
-                                                // ++++ Código 3D ++++
-                                                codIn3D.append("\n"+partes[0]+"["+partes[1].toString()+"]"+" = "+partesOp[1]);
-                                                //RESULT = ;  /// +++++++++++++++++++++++++++++++ No sé si se ocupa el RESULT
+                                                    // ++++ Código 3D ++++
+                                                    codIn3D.append("\n"+partes[0]+"["+partes[1].toString()+"]"+" = "+partesOp[1]);
+                                                    //RESULT = ;  /// +++++++++++++++++++++++++++++++ No sé si se ocupa el RESULT
                                             }
                                             else{
                                                 //Manejo de error semántico
@@ -858,12 +1186,6 @@ asignaElementoArreglo ::=   expArreglo:exp EQUIV operacionAritmetica:op
                                                 RESULT = "error_semantico";
                                             }
                                         }
-                                        else{
-                                            //Manejo de error semántico
-                                            manejoError("La posición : ["+partes[1]+"] está fuera del límite del tamaño del array", "semántico");
-                                            RESULT = "error_semantico";
-                                        }
-
                                     }
                                     else{
                                         //Manejo de error semántico
@@ -873,7 +1195,7 @@ asignaElementoArreglo ::=   expArreglo:exp EQUIV operacionAritmetica:op
                                 }
                                 else{
                                     RESULT = "error_semantico";
-                                }
+                                 }
                             :} ;
  
 expArreglo  ::=     ID:id LPARENT_CUAD cantidadArreglo:cant RPARENT_CUAD 
