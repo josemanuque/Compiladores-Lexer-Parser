@@ -8,17 +8,20 @@ _/
 
     array[0] = 1$
 
-    for(int i = 0$ i < 10$ ++i){
-        for(int j = 0$ j < 20$ ++j){
-            for(int x = 0$ j < 20$ ++j){
-                int c = a + 100 * 24 / 12$
-                int b$
+    if (a == 1){
+                int c$
+                c = 1$
             }
-        }
-    }
+            elif (a == 2){
+                int d$
+                d = 2$
+            }
+            else{
+                d = 2$
+                int e$
+            }
 
     
 
-    int b$
-    return 1$
+    return 'a'$
 }

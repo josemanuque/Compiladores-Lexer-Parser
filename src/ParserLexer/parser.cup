@@ -25,6 +25,9 @@ parser code {:
     ArrayList<String> elementosArray = new ArrayList<>();
     int contador_for = 0;
     int contador_while = 0;
+    int contador_if = 0;
+    int contador_else = 0;
+    int contador_elif = 0;
     String fatherCurrentHash = null;
     LinkedList<String> hashTree = new LinkedList<>();
     int currentHashPos = 0;
@@ -235,6 +238,9 @@ non terminal asignaArreglo, arregloValores, arregloValor, tipoArreglo, creaAsign
 non terminal tipoVarSubset;
 non terminal beginFor, endFor, beginCiclo, endCiclo, beginCondicion, beginAlter, endAlter, evaluaCondicion;
 non terminal beginWhile, endWhile, beginCicloWhile, endCicloWhile, beginCondicionWhile, evaluaCondicionWhile;
+non terminal beginIf, evaluaCondicionIf, beginBloqueIf, endBloqueIf, endIf;
+non terminal beginElse, endElse;
+non terminal beginElif, evaluaCondicionElif, beginBloqueElif, endBloqueElif;
 
 //non terminal nuevoLenguaje, funciones, tipoVar, creaVar, arregloConTam, parteIzAsig;
 //non terminal nuevoLenguaje, funciones, tipoVar, creaVar, arregloConTam, parteIzAsig;
@@ -468,7 +474,7 @@ asignacion ::=      creaAsignaVar FINEXP
                 |   ID:id EQUIV literal:lit FINEXP 
                     {:  // ++++ Análisis semántico ++++
                         if(fatherCurrentHash != null){
-                            if(buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id") == null && buscarID_o_tipoID(listaTablaSimbolos.get(fatherCurrentHash), id.toString(), "id") != null){ 
+                            if(buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id") != null){ 
                                 if(!lit.toString().equals("error_semantico")){
                                     String[] partes = lit.toString().split("::");
                                     // ++++ Código 3D ++++
@@ -827,19 +833,104 @@ escribeString ::= PRINT_STRING LPARENT ID RPARENT FINEXP
 
 control ::= condicional | ciclo;
 
-condicional ::= condIf condsElif condElse
-            |   condIf condsElif
-            |   condIf condElse
-            |   condIf;
+condicional ::= condIf condsElif condElse endIf
+            |   condIf condsElif endIf
+            |   condIf condElse endIf
+            |   condIf endIf;
 
-condIf ::= IF LPARENT operacionLogica RPARENT INIBLOQUE bloque FINBLOQUE;
+condIf ::=  beginIf IF LPARENT operacionLogica evaluaCondicionIf RPARENT INIBLOQUE beginBloqueIf bloque endBloqueIf FINBLOQUE;
+
+beginIf ::= {: String tipoTabla = "tipo:condicional:if";
+                ArrayList<String> listaSimbolos = new ArrayList<String>();
+                
+                fatherCurrentHash = currentHash;
+                currentHash = "if_"+(++contador_if)+"_"+ hashTree.get(currentHashPos);
+                listaSimbolos.add(tipoTabla);
+                hashTree.addLast(currentHash);
+                currentHashPos++;
+                listaTablaSimbolos.put(currentHash, listaSimbolos);
+                codIn3D.append("\n_if_" + contador_if + ":");
+                :} ;
+
+endIf ::= {:    codIn3D.append("\n_end_if_"+(contador_if)+":"); :} ;
+
+evaluaCondicionIf ::= {:    int temporalAnterior = currentTemp;
+                            codIn3D.append("\nif t"+(--temporalAnterior)+" goto _if_"+(contador_if)+"_bloque");
+                            codIn3D.append("\ngoto _end_if_"+(contador_if)+"_bloque");
+                        :} ;
+
+beginBloqueIf ::= {: codIn3D.append("\n_if_"+(contador_if)+"_bloque:"); :} ;
+
+endBloqueIf ::= {:  hashTree.removeLast();
+                    currentHashPos--;  
+                    currentHash = hashTree.getLast();
+                    if (hashTree.size() > 1)
+                        fatherCurrentHash = hashTree.get(currentHashPos-1);
+                    else
+                        fatherCurrentHash = null;  
+                    codIn3D.append("\ngoto _end_if_"+(contador_if)); 
+                    codIn3D.append("\n_end_if_"+(contador_if)+"_bloque:"); :} ;
 
 condsElif ::= condElif
             | condElif condsElif;
 
-condElif ::= ELIF LPARENT operacionLogica RPARENT INIBLOQUE bloque FINBLOQUE;
+condElif ::= beginElif ELIF LPARENT operacionLogica evaluaCondicionElif RPARENT INIBLOQUE beginBloqueElif bloque endBloqueElif FINBLOQUE;
 
-condElse ::= ELSE INIBLOQUE bloque FINBLOQUE;
+beginElif ::= {: String tipoTabla = "tipo:condicional:elif";
+                ArrayList<String> listaSimbolos = new ArrayList<String>();
+                
+                fatherCurrentHash = currentHash;
+                currentHash = "if_"+(contador_if)+"_elif_"+(++contador_elif)+ hashTree.get(currentHashPos);
+                listaSimbolos.add(tipoTabla);
+                hashTree.addLast(currentHash);
+                currentHashPos++;
+                listaTablaSimbolos.put(currentHash, listaSimbolos);
+                :} ;
+
+evaluaCondicionElif ::= {:    int temporalAnterior = currentTemp;
+                            codIn3D.append("\nif t"+(--temporalAnterior)+" goto _if_"+(contador_if)+"_elif_"+(contador_elif)+"_bloque");
+                            codIn3D.append("\ngoto _end_if_"+(contador_if)+"_elif_"+(contador_elif)+"_bloque");
+                        :} ;
+
+beginBloqueElif ::= {: codIn3D.append("\n_if_"+(contador_if)+"_elif_"+(contador_elif)+"_bloque:"); :} ;
+
+endBloqueElif ::= {: 
+                        hashTree.removeLast();
+                        currentHashPos--;  
+                        currentHash = hashTree.getLast();
+                        if (hashTree.size() > 1)
+                            fatherCurrentHash = hashTree.get(currentHashPos-1);
+                        else
+                            fatherCurrentHash = null;  
+                        codIn3D.append("\ngoto _end_if_"+(contador_if)); 
+                        codIn3D.append("\n_end_if_"+(contador_if)+"_elif_"+(contador_elif)+"_bloque:"); 
+                        :} ;
+
+
+condElse ::= beginElse ELSE INIBLOQUE bloque FINBLOQUE endElse;
+
+beginElse ::= {: String tipoTabla = "tipo:condicional:else";
+                ArrayList<String> listaSimbolos = new ArrayList<String>();
+                
+                fatherCurrentHash = currentHash;
+                currentHash = "if_"+(contador_if)+"_else_"+(++contador_else)+ hashTree.get(currentHashPos);
+                listaSimbolos.add(tipoTabla);
+                hashTree.addLast(currentHash);
+                currentHashPos++;
+                listaTablaSimbolos.put(currentHash, listaSimbolos);
+                codIn3D.append("\n_if_"+ contador_if +"_else_" + contador_else + ":");
+                :} ;
+
+endElse ::= {:
+                hashTree.removeLast();
+                currentHashPos--;  
+                currentHash = hashTree.getLast();
+                if (hashTree.size() > 1)
+                    fatherCurrentHash = hashTree.get(currentHashPos-1);
+                else
+                    fatherCurrentHash = null;  
+                codIn3D.append("\n_end_if_else_"+(contador_else)+":"); :} ;
+
 
 ciclo ::= cicloDoWhile
         | cicloFor;
@@ -1155,10 +1246,12 @@ asignaElementoArreglo ::=   expArreglo:exp EQUIV operacionAritmetica:op
                             {:  if(!exp.equals("error_semantico") && !op.equals("error_semantico")){
                                     String[] partes = exp.toString().split("::");
                                     String[] partesOp = op.toString().split("::");
+                                    System.out.println("partes[0] = "+partes[0]);
                                     if(fatherCurrentHash != null){
+                                        Boolean exists = buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), partes[0].toString(), "id") != null;
                                         Boolean InPadre = buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), partes[0].toString(), "id") == null && buscarID_o_tipoID(listaTablaSimbolos.get(fatherCurrentHash), partes[0].toString(), "id") != null ;
                                         Boolean InCurrent = buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), partes[0].toString(), "id") != null && buscarID_o_tipoID(listaTablaSimbolos.get(fatherCurrentHash), partes[0].toString(), "id") == null ;
-                                        if(InPadre | InCurrent){
+                                        if(exists){
                                             if(partes[2].toString().equals("int")){
                                                 // ++++ Análisis semántico ++++
                                                 String tipoArr = buscarID_o_tipoID(listaTablaSimbolos.get(fatherCurrentHash), partes[0].toString(), "id");
@@ -1199,7 +1292,7 @@ asignaElementoArreglo ::=   expArreglo:exp EQUIV operacionAritmetica:op
                                         }
                                         else{
                                             //Manejo de error semántico
-                                            manejoError("El array: "+partes[0].toString()+" no existe o no ha sido creado", "semántico");
+                                            manejoError("El AArray: "+partes[0].toString()+" no existe o no ha sido creado", "semántico");
                                             RESULT = "error_semantico";
                                         }
                                     }
