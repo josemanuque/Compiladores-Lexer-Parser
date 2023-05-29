@@ -24,6 +24,7 @@ parser code {:
     int currentTemp = 0;
     StringBuilder codIn3D = new StringBuilder();
     ArrayList<String> elementosArray = new ArrayList<>();
+    ArrayList<String> elementosParametros = new ArrayList<>();
     int contador_for = 0;
     int contador_while = 0;
     int contador_if = 0;
@@ -118,7 +119,6 @@ parser code {:
         int treeSize = hashTree.indexOf(hashTree.get(currentHashPos));
         for (int i = treeSize; i >= 0; i--) {
             tablaSimbolos = listaTablaSimbolos.get(hashTree.get(i));
-
             if(queBusca.equals("id")){
                 // Recorre los elementos del ArrayList
                 for (String elemento : tablaSimbolos) {
@@ -127,8 +127,8 @@ parser code {:
                     if (partes[0].equals(idBuscado)) { // Verifica si el ID coincide con el ID buscado
                         return partes[1]; // Se encontró el ID y se envía el tipo del ID
                     }
-                    if (partes[0].equals("Parámetro: "+idBuscado)) { // Verifica si el ID coincide con el ID buscado
-                        return partes[1]; // Se encontró el ID y se envía el tipo del ID
+                    if (partes[0].equals("Parámetro") && partes[1].equals(idBuscado)) { // Verifica si el ID coincide con el ID buscado
+                        return partes[1].trim(); // Se encontró el ID y se envía el tipo del ID
                     }	
                 }
             }
@@ -167,9 +167,33 @@ parser code {:
             for (String elemento : tablaSimbolos) {
                 // Divide el elemento en ID y tipo
                 String[] partes = elemento.split(":");
-            
-                if (listaTablaSimbolos.containsKey(idBuscado)) { // Verifica si el ID coincide con el ID buscado
-                    return partes[2].trim(); // Se encontró el ID de la función y se envía el tipo de la función
+                if (partes[0].equals("tipo") && partes[2].equals(idBuscado)) { // Verifica si el ID coincide con el ID buscado
+                    return partes[3].trim(); // Se encontró el ID de la función y se envía el tipo de la función
+                }
+            }
+        }
+        return null;   
+    }
+
+    private ArrayList<String> obtenerParametrosFuncion(String funcion){
+        Collection<ArrayList<String>> valores = listaTablaSimbolos.values();
+        ArrayList<String> parametros = new ArrayList<String>();
+        for (ArrayList<String> tablaSimbolos : valores){
+            // Recorre los elementos del ArrayList
+            for (int i = 0; i < tablaSimbolos.size(); i++) {
+                String elemento = tablaSimbolos.get(i);
+                // Divide el elemento en ID y tipo
+                String[] partes = elemento.split(":");
+                if (partes[0].equals("tipo") && partes[2].equals(funcion)) { // Verifica si el ID coincide con el ID buscado
+                    for (int j = i+1; j < tablaSimbolos.size(); j++){
+                        String linea = tablaSimbolos.get(i + 1); // Se encontró el ID de la función y se envía el tipo de la función
+                        if(linea.contains("Parámetro")){
+                            parametros.add(linea);
+                        }
+                    }
+                    if (parametros.size() != 0){
+                        return parametros;
+                    }
                 }
             }
         }
@@ -264,6 +288,7 @@ non terminal beginElif, evaluaCondicionElif, beginBloqueElif, endBloqueElif;
 //non terminal nuevoLenguaje, funciones, tipoVar, creaVar, arregloConTam, parteIzAsig;
 
 ////// precedencia ///////
+precedence left iniFun, endFun;
 precedence left PLUS, MINUS;
 precedence left TIMES, DIV;
 precedence left POWER, MODULE;
@@ -279,7 +304,7 @@ start with nuevoLenguaje;
 ////// producciones de la gramática ///////
 
 nuevoLenguaje ::=       funcionMain {: imprimirTablaSimbolos(); imprimirCodigo3D(); :}
-                    |   funcionMain funciones {: imprimirTablaSimbolos(); imprimirCodigo3D(); :} ;
+                    |   funciones funcionMain {: imprimirTablaSimbolos(); imprimirCodigo3D(); :} ;
 
 
 funcionMain ::=     iniFun LPARENT RPARENT INIBLOQUE bloque FINBLOQUE endFun
@@ -302,10 +327,10 @@ iniFun ::= tipoRet:tip identifier:id
 {:
            String tipoTabla;
            if(id.toString().equals("main")){
-            tipoTabla = "tipo:main: "+tip.toString();
+            tipoTabla = "tipo:funcion:"+id.toString()+": "+tip.toString();
            }
            else{
-            tipoTabla = "tipo:funcion: "+tip.toString();
+            tipoTabla = "tipo:funcion:"+id.toString()+": "+tip.toString();
            }
            if(existeFuncion(id.toString()) == null){
                 ArrayList<String> listaSimbolos = new ArrayList<String>();
@@ -534,12 +559,27 @@ asignacion ::=      creaAsignaVar FINEXP
                         }
                         else{
                             //Manejo error semántico
-                            manejoError("El ID: "+id+" no ha sido creado dentro de la función", "semántico");
+                            manejoError("El ID: "+id+" no ha sido creado dentro de la función ", "semántico");
                             RESULT = "error_semantico";
                         }
                     :} 
                     
-                |   ID EQUIV input FINEXP ; //*****************************************FALTAAAAAA ANALISIS SEMANTICO Y 3D;
+                |   ID:id EQUIV input:input FINEXP  {:
+                        String[] partes = input.toString().split("::");
+                        String tipo = partes[0].toString();
+
+                        if(buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id").equals(tipo)){
+                            // ++++ Código 3D ++++
+                            String temp = "t"+(currentTemp++); 
+                            codIn3D.append("\n"+id.toString()+" = "+partes[1].toString());
+                            RESULT = partes[0].toString()+"::"+temp; 
+                        }
+                        else{
+                            //Manejo error semántico
+                            manejoError("El ID: "+id+" no ha sido creado dentro de la función", "semántico");
+                            RESULT = "error_semantico";
+                        }
+                    :}; //*****************************************FALTAAAAAA ANALISIS SEMANTICO Y 3D;
 
 creaAsignaVar ::=    creaVar:cv EQUIV literal:lit 
                      {: // ++++ Análisis semántico ++++
@@ -561,7 +601,23 @@ creaAsignaVar ::=    creaVar:cv EQUIV literal:lit
                             RESULT = "error_semantico";
                         }
                      :}
-                  |  creaVar:cv EQUIV input {: RESULT = cv ; :} ; //***********************************FALTAAAAA codigo 3D y semántico
+                  |  creaVar:cv EQUIV input:input {:
+                        String[] partes = input.toString().split("::");
+                        String tipo = partes[0].toString();
+                        String[] partesLadoIzq = cv.toString().split(": ");
+
+                        if(partesLadoIzq[1].equals(tipo)){
+                            // ++++ Código 3D ++++
+                            String temp = "t"+(currentTemp++); 
+                            codIn3D.append("\n"+partesLadoIzq[0].toString()+" = "+partes[1].toString());
+                            RESULT = partes[0].toString()+"::"+temp; 
+                        }
+                        else{
+                            //Manejo error semántico
+                            manejoError("El ID: "+ partesLadoIzq[0].toString() +" no ha sido creado dentro de la función", "semántico");
+                            RESULT = "error_semantico";
+                        }
+                    :} ; //***********************************FALTAAAAA codigo 3D y semántico
  
                 //|   tipoVar ID EQUIV arreglo FINEXP
                 //|   tipoVar ID EQUIV arregloConTam FINEXP
@@ -704,7 +760,18 @@ operandoArit ::=        ENTERO:ent
                         } 
                     :}
 
-                    |   llamaFunc //***************************************FALTA ANALISIS SEMANTICO*********************************************************
+                    |   llamaFunc:llamaF {:
+                        if (!llamaF.toString().equals("error_semantico")){
+                            String[] partes = llamaF.toString().split("::");
+                            String tipo = partes[0].toString();
+                            String temp = partes[1].toString();
+                            String id = partes[2].toString();
+                            RESULT = tipo+"::"+temp+"::call "+id;
+                        }
+                        else{
+                            RESULT = "error_semantico";
+                        }
+                    :}
                     |   expArreglo:expArr
                     {:  if(!expArr.toString().equals("error_semantico")){
                             String[] partes = expArr.toString().split("::");
@@ -826,36 +893,121 @@ negacion ::=        NOT {: RESULT = "not"; :}
                 |   EXCLAMACION {: RESULT = "!"; :} ;
 
 
-llamaFunc ::=       ID LPARENT parametrosLlamada RPARENT
+llamaFunc ::=       ID:id LPARENT parametrosLlamada RPARENT 
+                {:  
+                    
+                    String tipoFunc = existeFuncion(id.toString());
+                    if(tipoFunc != null){
+                        ArrayList<String> parametrosFuncion = obtenerParametrosFuncion(id.toString());
+                       if (parametrosFuncion.size() == elementosParametros.size()){
+                            for(int i=0; i<parametrosFuncion.size(); i++){
+                                String[] partesParametro = parametrosFuncion.get(i).split(":");
+                                String[] partesElemento = elementosParametros.get(i).split(":");
+                                if(partesParametro[2].trim().equals(partesElemento[0])){
+                                    // ++++ Código 3D ++++
+                                    codIn3D.append("\nparam t"+ (currentTemp-1));
+                                }
+                                else{
+                                    manejoError("El tipo de dato del parámetro: "+partesParametro[1]+" no coincide con el tipo de dato del elemento: "+partesElemento[1], "semántico");
+                                    RESULT = "error_semantico";
+                                }
+                            }
+                            // ++++ Código 3D ++++
+                            String temp = "t"+(currentTemp++);
+                            codIn3D.append("\n"+temp+"= call "+id.toString()+ ", " + parametrosFuncion.size());
+                            RESULT = tipoFunc+"::"+temp +"::"+id.toString()+", "+ parametrosFuncion.size();
+                       }
+                       else{
+                           manejoError("El número de parámetros de la función: "+id+" no coincide con el número de elementos en la llamada", "semántico");
+                           RESULT = "error_semantico";
+                       }
+                    }
+                    else{
+                        // Manejo error semántico
+                        manejoError("La función: "+id+" no existe o no ha sido creada", "semántico");
+                        RESULT = "error_semantico";
+                    }
+                    elementosParametros.clear();
+                :}
                 |   ID LPARENT RPARENT;
 
 
-parametrosLlamada ::=       parametroLlamada
-                        |   parametroLlamada COMA parametrosLlamada;
+parametrosLlamada ::=       parametroLlamada:lit 
+                        {:  
+                            elementosParametros.add(lit.toString());
+                        :}
+                        |   parametroLlamada:lit COMA parametrosLlamada 
+                        {:  
+                            elementosParametros.add(lit.toString());
+                        :};
 
-parametroLlamada ::=    literal;
+parametroLlamada ::=    literal:lit {: RESULT=lit.toString(); :};
 ////// I/O ///////
 
 // Input
-input ::=       leeInt 
-            |   leeFloat;
-leeInt ::= READ_INT LPARENT RPARENT FINEXP;
-leeFloat ::= READ_FLOAT LPARENT RPARENT FINEXP;
+input ::=       leeInt:r {: RESULT=r; :}
+            |   leeFloat:r {: RESULT=r; :};
+leeInt ::= READ_INT LPARENT RPARENT {:
+                        // ++++ Código 3D ++++
+                        codIn3D.append("\nt"+(currentTemp-1)+" = call readInt");
+                        RESULT = "int::t"+(currentTemp-1);
+                    :};
+leeFloat ::= READ_FLOAT LPARENT RPARENT {:
+                        // ++++ Código 3D ++++
+                        codIn3D.append("\nt"+(currentTemp-1)+" call readFloat" );
+                        RESULT = "float::t"+(currentTemp-1);
+                    :};
 
 // Output
 output ::=      escribeInt 
             |   escribeFloat
             |   escribeString;
         
-escribeInt ::=      PRINT_INT LPARENT ID RPARENT FINEXP
-                |   PRINT_INT LPARENT ENTERO RPARENT FINEXP;
+escribeInt ::=      PRINT_INT LPARENT ID:id RPARENT FINEXP {: 
+                        String tipo = buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id");
+                        if(tipo.equals("int")){
+                            // ++++ Código 3D ++++
+                            codIn3D.append("\ncall printInt t"+(currentTemp-1));
+                        }
+                        else{
+                            manejoError("El tipo de dato del elemento: "+id.toString()+" no coincide con el tipo de dato del parámetro: int", "semántico");
+                        }
+                    :}
+                |   PRINT_INT LPARENT ENTERO RPARENT FINEXP
+                    {:  
+                            codIn3D.append("\ncall printInt t"+(currentTemp-1));
+                    :};
 
 
-escribeFloat ::=    PRINT_FLOAT LPARENT ID RPARENT FINEXP
-                |   PRINT_FLOAT LPARENT DECIMAL RPARENT FINEXP;
+escribeFloat ::=    PRINT_FLOAT LPARENT ID:id RPARENT FINEXP {:
+                        String tipo = buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id");
+                        if(tipo.equals("float")){
+                            // ++++ Código 3D ++++
+                            codIn3D.append("\ncall printFloat t"+(currentTemp-1));
+                        }
+                        else{
+                            manejoError("El tipo de dato del elemento: "+id.toString()+" no coincide con el tipo de dato del parámetro: int", "semántico");
+                        }
+                    :}
+                |   PRINT_FLOAT LPARENT DECIMAL RPARENT FINEXP
+                    {:  
+                            codIn3D.append("\nprintFloat t"+(currentTemp-1));
+                    :};
 
-escribeString ::= PRINT_STRING LPARENT ID RPARENT FINEXP
-                | PRINT_STRING LPARENT CADENA RPARENT FINEXP;
+escribeString ::= PRINT_STRING LPARENT ID:id RPARENT FINEXP {:
+                        String tipo = buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id");
+                        if(tipo.equals("string")){
+                            // ++++ Código 3D ++++
+                            codIn3D.append("\ncall printString t"+(currentTemp-1));
+                        }
+                        else{
+                            manejoError("El tipo de dato del elemento: "+id.toString()+" no coincide con el tipo de dato del parámetro: int", "semántico");
+                        }
+                    :}
+                | PRINT_STRING LPARENT CADENA RPARENT FINEXP
+                    {:  
+                            codIn3D.append("\ncall printString t"+(currentTemp-1));
+                    :};
 
 ////// Control de flujo ///////
 
@@ -1289,7 +1441,6 @@ asignaElementoArreglo ::=   expArreglo:exp EQUIV operacionAritmetica:op
                             {:  if(!exp.equals("error_semantico") && !op.equals("error_semantico")){
                                     String[] partes = exp.toString().split("::");
                                     String[] partesOp = op.toString().split("::");
-                                    System.out.println("partes[0] = "+partes[0]);
                                     if(fatherCurrentHash != null){
                                         Boolean exists = buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), partes[0].toString(), "id") != null;
                                         Boolean InPadre = buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), partes[0].toString(), "id") == null && buscarID_o_tipoID(listaTablaSimbolos.get(fatherCurrentHash), partes[0].toString(), "id") != null ;
@@ -1335,7 +1486,7 @@ asignaElementoArreglo ::=   expArreglo:exp EQUIV operacionAritmetica:op
                                         }
                                         else{
                                             //Manejo de error semántico
-                                            manejoError("El AArray: "+partes[0].toString()+" no existe o no ha sido creado", "semántico");
+                                            manejoError("El Array: "+partes[0].toString()+" no existe o no ha sido creado", "semántico");
                                             RESULT = "error_semantico";
                                         }
                                     }

@@ -1,18 +1,8 @@
 -------------------------
 
-Tabla de símbolos: test
-Valores: tipo:funcion: int
-x: int
-
--------------------------
-
 Tabla de símbolos: main
-Valores: tipo:main: int
+Valores: tipo:funcion:main: int
 array: int: 10
-
--------------------------
-
-Tabla de símbolos: test1
-Valores: tipo:funcion: int
+a: float
 
 El archivo puede ser generado por la gramática.
