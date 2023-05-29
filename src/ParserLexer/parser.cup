@@ -2,6 +2,7 @@ package ParserLexer;
 import java_cup.runtime.*;
 import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 // Aquí va la gramática BNF que hicimos solo que se pone con ::= en vez de la flecha 
 // También se declaran los terminales y los no terminales por medio de los símbolos y las producciones
@@ -23,7 +24,11 @@ parser code {:
     StringBuilder codIn3D = new StringBuilder();
     ArrayList<String> elementosArray = new ArrayList<>();
     int contador_for = 0;
+    int contador_while = 0;
     String fatherCurrentHash = null;
+    LinkedList<String> hashTree = new LinkedList<>();
+    int currentHashPos = 0;
+
 
     /* Constructor del parser, recibe como parámetro el lexer que se va a utilizar 
         Entradas: Lexer lex
@@ -106,42 +111,45 @@ parser code {:
         Restricciones: Ninguna
     */
      private String buscarID_o_tipoID(ArrayList<String> tablaSimbolos, String idBuscado, String queBusca) {
+        int treeSize = hashTree.indexOf(hashTree.get(currentHashPos));
+        for (int i = treeSize; i >= 0; i--) {
+            tablaSimbolos = listaTablaSimbolos.get(hashTree.get(i));
 
-        if(queBusca.equals("id")){
-            // Recorre los elementos del ArrayList
-            for (String elemento : tablaSimbolos) {
-                // Divide el elemento en ID y tipo
-                String[] partes = elemento.split(": ");
-                if (partes[0].equals(idBuscado)) { // Verifica si el ID coincide con el ID buscado
-                    return partes[1]; // Se encontró el ID y se envía el tipo del ID
-                }
-                if (partes[0].equals("Parámetro: "+idBuscado)) { // Verifica si el ID coincide con el ID buscado
-                    return partes[1]; // Se encontró el ID y se envía el tipo del ID
-                }	
-            }
-            return null;
-        }
-        else if(queBusca.equals("funcion")){
-            // Recorre los elementos del ArrayList
-            for (String elemento : tablaSimbolos) {
-                // Divide el elemento en ID y tipo
-                String[] partes = elemento.split(":");
-            
-                if (partes[1].equals(idBuscado)) { // Verifica si el ID coincide con el ID buscado
-                    return partes[2]; // Se encontró el ID de la función y se envía el tipo de la función
+            if(queBusca.equals("id")){
+                // Recorre los elementos del ArrayList
+                for (String elemento : tablaSimbolos) {
+                    // Divide el elemento en ID y tipo
+                    String[] partes = elemento.split(": ");
+                    if (partes[0].equals(idBuscado)) { // Verifica si el ID coincide con el ID buscado
+                        return partes[1]; // Se encontró el ID y se envía el tipo del ID
+                    }
+                    if (partes[0].equals("Parámetro: "+idBuscado)) { // Verifica si el ID coincide con el ID buscado
+                        return partes[1]; // Se encontró el ID y se envía el tipo del ID
+                    }	
                 }
             }
-            return null;
-        }
-        else if(queBusca.equals("tamañoArray")){
-            // Recorre los elementos del ArrayList
-            for (String elemento : tablaSimbolos) {
-                // Divide el elemento en ID y tipo
-                String[] partes = elemento.split(": ");
-            
-                if (partes[0].equals(idBuscado)) { // Verifica si el ID coincide con el ID buscado
-                    return partes[2]; // Se encontró el ID de la función y se envía el tipo de la función
+            else if(queBusca.equals("funcion")){
+                // Recorre los elementos del ArrayList
+                for (String elemento : tablaSimbolos) {
+                    // Divide el elemento en ID y tipo
+                    String[] partes = elemento.split(":");
+                
+                    if (partes[1].equals(idBuscado)) { // Verifica si el ID coincide con el ID buscado
+                        return partes[2]; // Se encontró el ID de la función y se envía el tipo de la función
+                    }
                 }
+            }
+            else if(queBusca.equals("tamañoArray")){
+                // Recorre los elementos del ArrayList
+                for (String elemento : tablaSimbolos) {
+                    // Divide el elemento en ID y tipo
+                    String[] partes = elemento.split(": ");
+                
+                    if (partes[0].equals(idBuscado)) { // Verifica si el ID coincide con el ID buscado
+                        return partes[2]; // Se encontró el ID de la función y se envía el tipo de la función
+                    }
+                }
+
             }
         }
         return null;       
@@ -226,6 +234,7 @@ non terminal arregloSinTam, asignaElementoArreglo, expArreglo, cantidadArreglo;
 non terminal asignaArreglo, arregloValores, arregloValor, tipoArreglo, creaAsignaArreglo, creaArreglo;
 non terminal tipoVarSubset;
 non terminal beginFor, endFor, beginCiclo, endCiclo, beginCondicion, beginAlter, endAlter, evaluaCondicion;
+non terminal beginWhile, endWhile, beginCicloWhile, endCicloWhile, beginCondicionWhile, evaluaCondicionWhile;
 
 //non terminal nuevoLenguaje, funciones, tipoVar, creaVar, arregloConTam, parteIzAsig;
 //non terminal nuevoLenguaje, funciones, tipoVar, creaVar, arregloConTam, parteIzAsig;
@@ -278,6 +287,7 @@ iniFun ::= tipoRet:tip identifier:id
            ArrayList<String> listaSimbolos = new ArrayList<String>();
            currentHash = id.toString();
            listaSimbolos.add(tipoTabla);
+           hashTree.addLast(currentHash);
            listaTablaSimbolos.put(currentHash, listaSimbolos);
            RESULT = tip.toString()+" "+id.toString();
 :};
@@ -424,6 +434,8 @@ creaVar ::=     tipoVar:tip ID:id
 
             |   tipoVarSubset:tip ID:id  
                 {:  // ++++ Análisis semántico ++++
+                    
+                    //System.out.println(fatherCurrentHash);
                     if(fatherCurrentHash != null && buscarID_o_tipoID(listaTablaSimbolos.get(fatherCurrentHash), id.toString(), "id") == null){
                         if(buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id") == null ) {
                             // ++++ Código 3D ++++
@@ -833,9 +845,46 @@ ciclo ::= cicloDoWhile
         | cicloFor;
 
 
-cicloDoWhile ::=    DO INIBLOQUE bloque FINBLOQUE WHILE LPARENT operacionLogica RPARENT FINEXP;
+cicloDoWhile ::=    beginWhile DO INIBLOQUE beginCicloWhile bloque endCicloWhile FINBLOQUE WHILE LPARENT beginCondicionWhile operacionLogica evaluaCondicionWhile RPARENT FINEXP endWhile;
 
-// Qué pasa con los fors anidados ??????
+beginWhile ::= {: String tipoTabla = "tipo:ciclo:while";
+                ArrayList<String> listaSimbolos = new ArrayList<String>();
+                
+                fatherCurrentHash = currentHash;
+                currentHash = "while_"+(currentHashPos + 1)+"_"+ hashTree.get(currentHashPos);
+                listaSimbolos.add(tipoTabla);
+                hashTree.addLast(currentHash);
+                currentHashPos++;
+                listaTablaSimbolos.put(currentHash, listaSimbolos);
+                codIn3D.append("\n_begin_while_"+(contador_while)+":");
+            :} ;
+
+endWhile ::=  {:  
+                hashTree.removeLast();
+                currentHashPos--;  
+                currentHash = hashTree.getLast();
+                if (hashTree.size() > 1)
+                    fatherCurrentHash = hashTree.get(currentHashPos-1);
+                else
+                    fatherCurrentHash = null;       
+                codIn3D.append("\n_end_while_"+(contador_while)+":"); 
+            :} ;
+
+beginCicloWhile ::= {: codIn3D.append("\n_begin_while_"+(contador_while)+"_bloque:"); :}; 
+
+endCicloWhile ::= {: codIn3D.append("\ngoto _begin_while_"+(contador_while)+"_condicion");
+                codIn3D.append("\n_end_while_"+(contador_while)+"_bloque:"); :} ;
+
+beginCondicionWhile ::= {: codIn3D.append("\n_begin_while_"+(contador_while)+"_condicion:"); 
+                            currentHashPos--; :};
+
+evaluaCondicionWhile ::= {: int temporalAnterior = currentTemp;
+                       currentHashPos++;
+                       codIn3D.append("\nif t"+(--temporalAnterior)+" goto _begin_while_"+(contador_while)+"_bloque");
+                       codIn3D.append("\ngoto _end_while_"+(contador_while)+"_bloque"); :} ;
+                    
+
+// Ya sirven pero en un for enciclado no se estan contando las variables definidas en la funcion ///// ¿??
 cicloFor ::=      beginFor FOR LPARENT creaAsignaVar FINEXP beginCondicion operacionLogica evaluaCondicion FINEXP beginAlter operacionAritmetica endAlter RPARENT INIBLOQUE beginCiclo bloque endCiclo FINBLOQUE endFor
                 | beginFor FOR LPARENT creaAsignaVar FINEXP beginCondicion operacionLogica evaluaCondicion FINEXP beginAlter asignacion endAlter RPARENT INIBLOQUE beginCiclo bloque endCiclo FINBLOQUE endFor ;
 
@@ -844,11 +893,17 @@ beginFor ::= {: String tipoTabla = "tipo:ciclo:for";
                 fatherCurrentHash = currentHash;
                 currentHash = "for_"+(++contador_for)+"_"+fatherCurrentHash;
                 listaSimbolos.add(tipoTabla);
+                hashTree.addLast(currentHash);
+                currentHashPos++;
                 listaTablaSimbolos.put(currentHash, listaSimbolos);
                 codIn3D.append("\n_begin_for_"+(contador_for)+":");
             :} ;
 
-endFor ::=  {:  currentHash = fatherCurrentHash;
+endFor ::=  {:  
+                currentHash = fatherCurrentHash;
+                currentHash = hashTree.get(currentHashPos-1);
+                hashTree.removeLast();
+                currentHashPos--;
                 fatherCurrentHash = null;                
                 codIn3D.append("\n_end_for_"+(contador_for)+":"); 
             :} ;

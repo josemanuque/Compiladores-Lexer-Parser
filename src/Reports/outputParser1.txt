@@ -1,0 +1,30 @@
+-------------------------
+
+Tabla de símbolos: for_2_for_1_main
+Valores: tipo:ciclo:for
+j: int
+
+-------------------------
+
+Tabla de símbolos: for_3_for_2_for_1_main
+Valores: tipo:ciclo:for
+x: int
+c: int
+b: int
+
+-------------------------
+
+Tabla de símbolos: main
+Valores: tipo:main: int
+array: int: 10
+a: int
+k: int
+b: int
+
+-------------------------
+
+Tabla de símbolos: for_1_main
+Valores: tipo:ciclo:for
+i: int
+
+El archivo puede ser generado por la gramática.
