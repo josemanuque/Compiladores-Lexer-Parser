@@ -3,25 +3,14 @@ int main(){
 Comentario 1
 _/
     int array[10]$
-    int a = 1$
-    int k = 2$
+    return 1$
+}
 
-    array[0] = 1$
+int test(){
+    int x = 2$
+    return 1$
+}
 
-    if (a == 1){
-                int c$
-                c = 1$
-            }
-            elif (a == 2){
-                int d$
-                d = 2$
-            }
-            else{
-                d = 2$
-                int e$
-            }
-
-    
-
-    return 'a'$
+int test1(){
+    return 2$
 }

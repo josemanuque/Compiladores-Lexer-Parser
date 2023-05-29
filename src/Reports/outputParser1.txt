@@ -1,27 +1,18 @@
 -------------------------
 
-Tabla de símbolos: if_1_elif_1main
-Valores: tipo:condicional:elif
-d: int
-
--------------------------
-
-Tabla de símbolos: if_1_else_1main
-Valores: tipo:condicional:else
-e: int
+Tabla de símbolos: test
+Valores: tipo:funcion: int
+x: int
 
 -------------------------
 
 Tabla de símbolos: main
 Valores: tipo:main: int
 array: int: 10
-a: int
-k: int
 
 -------------------------
 
-Tabla de símbolos: if_1_main
-Valores: tipo:condicional:if
-c: int
+Tabla de símbolos: test1
+Valores: tipo:funcion: int
 
-El archivo fuente tiene errores, no puede ser generado por la gramática.
+El archivo puede ser generado por la gramática.
