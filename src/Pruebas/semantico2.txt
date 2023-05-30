@@ -1,24 +1,8 @@
 int main(){
-/_
-Comentario 1
-_/
-    @char in1 = '!'$
-    @string var = "hola"$
-    @string var2 = 10$
-    char var = 'a'$
 
-    boolean bandera = false$
-    boolean bandera2 = (10.0>=2.2) ^ (!bandera)$
-    int operacion = (2 + 4) / (8**7) * (120 * 30)$
-    int array1[10]$
-    char array2[5]$
-    int array3[3] = {1,2,3}$
-    char array4[2] = {var, 'b'}$
-    array1[0] = 1 * 2 / 67$
-    int array[] = {1,2,3,4,5}$
-    array[4] = 0$
-    int a$
+int a = 4.5$
+b = 2$
 
-    return 1$
+return 6.5$
 
 }

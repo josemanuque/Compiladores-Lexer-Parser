@@ -812,6 +812,10 @@ public class parser extends java_cup.runtime.lr_parser {
         return errores;
     }
 
+    public StringBuilder getCodIn3D(){
+        return codIn3D;
+    }
+
     /* Método que se encarga de imprimir la tabla de símbolos
         Entradas: Ninguna
         Salidas: Ninguna
@@ -1700,16 +1704,22 @@ class CUP$parser$actions {
 		
                         String[] partes = input.toString().split("::");
                         String tipo = partes[0].toString();
+                        String tipoId = buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id");
 
-                        if(buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id").equals(tipo)){
+                        if(tipoId.equals(tipo)){
                             // ++++ Código 3D ++++
                             String temp = "t"+(currentTemp++); 
                             codIn3D.append("\n"+id.toString()+" = "+partes[1].toString());
                             RESULT = partes[0].toString()+"::"+temp; 
                         }
-                        else{
+                        else if(tipoId == null){
                             //Manejo error semántico
                             manejoError("El ID: "+id+" no ha sido creado dentro de la función", "semántico");
+                            RESULT = "error_semantico";
+                        }
+                        else{
+                            //Manejo error semántico
+                            manejoError("El ID: "+id+" tiene un tipo diferente al del input", "semántico");
                             RESULT = "error_semantico";
                         }
                     
@@ -2472,6 +2482,10 @@ class CUP$parser$actions {
                             RESULT = tipoFunc+"::"+temp +"::"+id.toString()+", "+ parametrosFuncion.size();
                        }
                        else{
+                            String tamaño1 = String.valueOf(parametrosFuncion.size());
+                            String tamaño2 = String.valueOf(elementosParametros.size());
+                            System.out.println("**** El número 1 es: "+tamaño1);
+                            System.out.println("**** El número 2 es: "+tamaño2);
                            manejoError("El número de parámetros de la función: "+id+" no coincide con el número de elementos en la llamada", "semántico");
                            RESULT = "error_semantico";
                        }
@@ -2659,7 +2673,7 @@ class CUP$parser$actions {
                             codIn3D.append("\ncall printFloat t"+(currentTemp-1));
                         }
                         else{
-                            manejoError("El tipo de dato del elemento: "+id.toString()+" no coincide con el tipo de dato del parámetro: int", "semántico");
+                            manejoError("El tipo de dato del elemento: "+id.toString()+" no coincide con el tipo de dato del parámetro: float", "semántico");
                         }
                     
               CUP$parser$result = parser.getSymbolFactory().newSymbol("escribeFloat",28, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-4)), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
@@ -2691,7 +2705,7 @@ class CUP$parser$actions {
                             codIn3D.append("\ncall printString t"+(currentTemp-1));
                         }
                         else{
-                            manejoError("El tipo de dato del elemento: "+id.toString()+" no coincide con el tipo de dato del parámetro: int", "semántico");
+                            manejoError("El tipo de dato del elemento: "+id.toString()+" no coincide con el tipo de dato del parámetro: string", "semántico");
                         }
                     
               CUP$parser$result = parser.getSymbolFactory().newSymbol("escribeString",29, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-4)), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);

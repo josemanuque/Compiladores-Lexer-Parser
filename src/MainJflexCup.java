@@ -88,7 +88,9 @@ public class MainJflexCup {
     public void runParser(String pathTest){
         try{
             String pathParserOutput = "src/Reports/outputParser1.txt";
+            String pathParserCod3Doutput = "src/Reports/outputCod3D.txt";
             BufferedWriter file = new BufferedWriter(new FileWriter(pathParserOutput));
+            BufferedWriter file3D = new BufferedWriter(new FileWriter(pathParserCod3Doutput));
             Reader inputLexer = new FileReader(pathTest);
             Lexer lexer = new Lexer(inputLexer);
             parser parser = new parser(lexer);
@@ -104,6 +106,9 @@ public class MainJflexCup {
     
                 file.write("\n");
             }
+
+            file3D.write("++++++++ CODIGO 3D +++++++++");
+            file3D.write(parser.getCodIn3D().toString());
         
             if(parser.getErrores() == false){
                 System.out.println("El archivo puede ser generado por la gramática.");
@@ -114,6 +119,7 @@ public class MainJflexCup {
                 file.write("El archivo fuente tiene errores, no puede ser generado por la gramática.");
             }
             file.close();
+            file3D.close();
         }
         catch (Exception e) {
             System.out.println("El archivo fuente tiene errores, no puede ser generado por la gramática.");

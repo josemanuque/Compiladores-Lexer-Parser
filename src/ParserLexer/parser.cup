@@ -56,6 +56,10 @@ parser code {:
         return errores;
     }
 
+    public StringBuilder getCodIn3D(){
+        return codIn3D;
+    }
+
     /* Método que se encarga de imprimir la tabla de símbolos
         Entradas: Ninguna
         Salidas: Ninguna
@@ -567,19 +571,25 @@ asignacion ::=      creaAsignaVar FINEXP
                 |   ID:id EQUIV input:input FINEXP  {:
                         String[] partes = input.toString().split("::");
                         String tipo = partes[0].toString();
+                        String tipoId = buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id");
 
-                        if(buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id").equals(tipo)){
+                        if(tipoId.equals(tipo)){
                             // ++++ Código 3D ++++
                             String temp = "t"+(currentTemp++); 
                             codIn3D.append("\n"+id.toString()+" = "+partes[1].toString());
                             RESULT = partes[0].toString()+"::"+temp; 
                         }
-                        else{
+                        else if(tipoId == null){
                             //Manejo error semántico
                             manejoError("El ID: "+id+" no ha sido creado dentro de la función", "semántico");
                             RESULT = "error_semantico";
                         }
-                    :}; //*****************************************FALTAAAAAA ANALISIS SEMANTICO Y 3D;
+                        else{
+                            //Manejo error semántico
+                            manejoError("El ID: "+id+" tiene un tipo diferente al del input", "semántico");
+                            RESULT = "error_semantico";
+                        }
+                    :};
 
 creaAsignaVar ::=    creaVar:cv EQUIV literal:lit 
                      {: // ++++ Análisis semántico ++++
@@ -918,6 +928,10 @@ llamaFunc ::=       ID:id LPARENT parametrosLlamada RPARENT
                             RESULT = tipoFunc+"::"+temp +"::"+id.toString()+", "+ parametrosFuncion.size();
                        }
                        else{
+                            String tamaño1 = String.valueOf(parametrosFuncion.size());
+                            String tamaño2 = String.valueOf(elementosParametros.size());
+                            System.out.println("**** El número 1 es: "+tamaño1);
+                            System.out.println("**** El número 2 es: "+tamaño2);
                            manejoError("El número de parámetros de la función: "+id+" no coincide con el número de elementos en la llamada", "semántico");
                            RESULT = "error_semantico";
                        }
@@ -986,7 +1000,7 @@ escribeFloat ::=    PRINT_FLOAT LPARENT ID:id RPARENT FINEXP {:
                             codIn3D.append("\ncall printFloat t"+(currentTemp-1));
                         }
                         else{
-                            manejoError("El tipo de dato del elemento: "+id.toString()+" no coincide con el tipo de dato del parámetro: int", "semántico");
+                            manejoError("El tipo de dato del elemento: "+id.toString()+" no coincide con el tipo de dato del parámetro: float", "semántico");
                         }
                     :}
                 |   PRINT_FLOAT LPARENT DECIMAL RPARENT FINEXP
@@ -1001,7 +1015,7 @@ escribeString ::= PRINT_STRING LPARENT ID:id RPARENT FINEXP {:
                             codIn3D.append("\ncall printString t"+(currentTemp-1));
                         }
                         else{
-                            manejoError("El tipo de dato del elemento: "+id.toString()+" no coincide con el tipo de dato del parámetro: int", "semántico");
+                            manejoError("El tipo de dato del elemento: "+id.toString()+" no coincide con el tipo de dato del parámetro: string", "semántico");
                         }
                     :}
                 | PRINT_STRING LPARENT CADENA RPARENT FINEXP
