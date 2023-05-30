@@ -884,11 +884,12 @@ public class parser extends java_cup.runtime.lr_parser {
                 for (String elemento : tablaSimbolos) {
                     // Divide el elemento en ID y tipo
                     String[] partes = elemento.split(": ");
+                    
                     if (partes[0].equals(idBuscado)) { // Verifica si el ID coincide con el ID buscado
                         return partes[1]; // Se encontró el ID y se envía el tipo del ID
                     }
                     if (partes[0].equals("Parámetro") && partes[1].equals(idBuscado)) { // Verifica si el ID coincide con el ID buscado
-                        return partes[1].trim(); // Se encontró el ID y se envía el tipo del ID
+                        return partes[2].trim(); // Se encontró el ID y se envía el tipo del ID
                     }	
                 }
             }
@@ -3212,7 +3213,7 @@ class CUP$parser$actions {
 		int litleft = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)).left;
 		int litright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)).right;
 		Object lit = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1)).value;
-		 // Chequear si el tipo de la funcion es igual al tipo del literar
+		 // Chequear si el tipo de la funcion es igual al tipo del literal
                                         int temporalAnterior = currentTemp;
                                         int treeSize = hashTree.indexOf(hashTree.get(currentHashPos));
                                         String tipoFunc = "";

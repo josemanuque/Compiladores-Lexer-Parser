@@ -1,7 +1,17 @@
 ++++++++ CODIGO 3D +++++++++
+_otraFun_begin:
+t0 = a
+return t0
+_otraFun_end:
 _main_begin:
+data_int b
 data_int a
-t0 = 4.5
-t1 = 2
-t2 = 6.5
+t1 = 4
+a = t1
+t2 = 5
+param t2
+t3= call otraFun, 1
+b = t3
+t5 = 6
+return t5
 _main_end:

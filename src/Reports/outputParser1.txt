@@ -1,7 +1,14 @@
 -------------------------
 
-Tabla de sÃ­mbolos: main
+Tabla de símbolos: otraFun
+Valores: tipo:funcion:otraFun: int
+Parámetro: a: int
+
+-------------------------
+
+Tabla de símbolos: main
 Valores: tipo:funcion:main: int
+b: int
 a: int
 
-El archivo fuente tiene errores, no puede ser generado por la gramÃ¡tica.
+El archivo puede ser generado por la gramática.

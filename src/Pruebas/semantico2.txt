@@ -1,7 +1,12 @@
+int otraFun(int a){
+    return a$
+}
+
 int main(){
 
+int b$
 int a = 4.5$
-b = 2$
+b = otraFun(5)$
 
 return 6.5$
 
