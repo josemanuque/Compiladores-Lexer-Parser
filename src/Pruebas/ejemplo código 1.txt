@@ -1,0 +1,51 @@
+float func1(int x23){
+	int x22$ @semantico x22
+	float var = 5.6$ @semantico var
+	if (x22 <= 45 # var > 5.6){ @semantico x22, var
+		x22 = 10$
+		char ch33 = 'a'$
+	} else {
+		string str2 = "sdff"$
+	}
+
+	return -5.6$ @cambio en retorno genera semantico
+}
+
+
+boolean func2(boolean b1, int i1){
+	return false$ @generar error con -5.6 y con i1
+}
+
+int func3(string b1){ @semantico string
+	return 10$ 
+}
+
+
+int main(){
+/_
+Comentario 1
+_/
+	char miChar = '!'$
+	char miChar2 = '!'$ @semantico
+	string str1 = "Mi string 1"$
+	float fl1$
+	float fl3 = 56.6$ @semantico fl1
+	int in1 = --in1 * -14 / ++in1 + 7 - 15$ @semantico fl1, in1
+	float fl2 = 3.7 ** fl1 + (45.6 ~ 7.6)$ @semantico literal 76
+	@ int arr[2]$
+	int arr[2] = {4,5}$ @posible semantico
+	arr[1] = in1$ @semantico tipo
+	char arr2[3]$
+
+@comentario 2
+
+	arr[0] = 5 * 5$
+	arr[1] = 10 - arr[0] * 10$ @semantico func1
+	fl1 = 4.5~fl1**-0.005$ @semantico miChar
+	func3 ("hola")$ @semantico miFunc, hola
+	boolean bl0 = 6.7 != 8.9$ @ok
+	boolean bl1 = fl2 >= fl1 # false ^ not(func1(56) > 5.6)$ @semantico in1 >= fl1, func2
+	return 0$ @semantico
+}
+
+

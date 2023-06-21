@@ -1,13 +1,42 @@
-int otraFun(int a){
+
+int main(int a){
     return a$
 }
 
-int main(){
+int otraFun(){
 
 int b$
-int a = 4.5$
-b = otraFun(5)$
+int a = 4$
 
-return 6.5$
+
+return 6$
 
 }
+
+int otrafun(int test x){
+
+    int b = 10$
+    float a = 2.2$
+    int array[10] = {1,2,3,4,5,6,7,8,9,10}$
+    int var = 7$
+    if (b <= 45 # var > 5){
+        var = 10$
+        char ch33 = 'a'$
+    } else {
+        string str2 = "sdff"$
+    }
+
+return 6$
+
+}
+
+int otrafun2(){
+
+int b$
+int a = 4$
+
+
+return 6$
+
+}
+

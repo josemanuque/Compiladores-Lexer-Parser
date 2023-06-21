@@ -33,7 +33,10 @@ parser code {:
     String fatherCurrentHash = null;
     LinkedList<String> hashTree = new LinkedList<>();
     int currentHashPos = 0;
-
+    StringBuilder mipsData = new StringBuilder();
+    StringBuilder mipsMain = new StringBuilder();
+    String stringCreationMips = "";
+    int mipsTemp = 0;
 
     /* Constructor del parser, recibe como parámetro el lexer que se va a utilizar 
         Entradas: Lexer lex
@@ -56,10 +59,34 @@ parser code {:
         return errores;
     }
 
+    /* Método que se encarga de retornar el string buffer del código intermedio 3 direcciones
+        Entradas: Ninguna
+        Salidas: codIn3D
+        Restricciones: Ninguna
+    */
     public StringBuilder getCodIn3D(){
         return codIn3D;
     }
 
+    /*
+        Método que se encarga de retornar el string buffer del código MIPS
+        Entradas: Ninguna
+        Salidas: mipsData
+        Restricciones: Ninguna
+    */
+    public StringBuilder getMipsData(){
+        return mipsData;
+    }
+
+    /*
+        Método que se encarga de retornar el string buffer del código MIPS
+        Entradas: Ninguna
+        Salidas: mipsMain
+        Restricciones: Ninguna
+    */
+    public StringBuilder getMipsMain(){
+        return mipsMain;
+    }
     /* Método que se encarga de imprimir la tabla de símbolos
         Entradas: Ninguna
         Salidas: Ninguna
@@ -89,6 +116,39 @@ parser code {:
         System.out.println("++++++++ CODIGO 3D +++++++++");
         System.out.println("");
         System.out.println(codIn3D.toString());
+    }
+
+
+    /* Método que se encarga de imprimir el string buffer del código MIPS en la terminal.
+        Entradas: Ninguna
+        Salidas: Ninguna
+        Restricciones: Ninguna
+    */
+    private void imprimirCodigoMIPS(){
+        System.out.println("++++++++ CODIGO MIPS +++++++++");
+        System.out.println("");
+        System.out.println(".data\n");
+        System.out.println(mipsData.toString());
+        System.out.println(".text\n");
+        System.out.println(".globl main\n");
+        System.out.println(mipsMain.toString());
+        System.out.println("   li $v0, 10");
+        System.out.println("   syscall");
+    }
+
+
+    /* Método que se encarga de imprimir el string buffer del código MIPS en un archivo .asm.
+        Entradas: Ninguna
+        Salidas: Ninguna
+        Restricciones: Ninguna
+    */
+    private int addMipsTemp(){
+        if (mipsTemp == 9){
+            mipsTemp = 0;
+        }else{
+            mipsTemp++;
+        }
+        return mipsTemp;
     }
 
     /*
@@ -191,7 +251,7 @@ parser code {:
                 String[] partes = elemento.split(":");
                 if (partes[0].equals("tipo") && partes[2].equals(funcion)) { // Verifica si el ID coincide con el ID buscado
                     for (int j = i+1; j < tablaSimbolos.size(); j++){
-                        String linea = tablaSimbolos.get(i + 1); // Se encontró el ID de la función y se envía el tipo de la función
+                        String linea = tablaSimbolos.get(j); // Se encontró el ID de la función y se envía el tipo de la función
                         if(linea.contains("Parámetro")){
                             parametros.add(linea);
                         }
@@ -308,8 +368,8 @@ start with nuevoLenguaje;
 
 ////// producciones de la gramática ///////
 
-nuevoLenguaje ::=       funcionMain {: imprimirTablaSimbolos(); imprimirCodigo3D(); :}
-                    |   funciones funcionMain {: imprimirTablaSimbolos(); imprimirCodigo3D(); :} ;
+nuevoLenguaje ::=       funcionMain {: imprimirTablaSimbolos(); imprimirCodigo3D(); imprimirCodigoMIPS();:}
+                    |   funciones funcionMain {: imprimirTablaSimbolos(); imprimirCodigo3D(); imprimirCodigoMIPS(); :} ;
 
 
 funcionMain ::=     iniFun LPARENT RPARENT INIBLOQUE bloque FINBLOQUE endFun
@@ -345,6 +405,7 @@ iniFun ::= tipoRet:tip identifier:id
                 listaTablaSimbolos.put(currentHash, listaSimbolos);
                 RESULT = tip.toString()+" "+id.toString();
                 codIn3D.append("\n_"+id.toString()+"_begin:");
+                mipsMain.append("\n"+id.toString()+":");
            }
            else{
                 currentHash = id.toString();
@@ -354,7 +415,10 @@ iniFun ::= tipoRet:tip identifier:id
            
 :};
 
-endFun ::=  {: codIn3D.append("\n_"+hashTree.getLast()+"_end:"); hashTree.removeLast(); :};
+endFun ::=  {:  codIn3D.append("\n_"+hashTree.getLast()+"_end:"); 
+                hashTree.removeLast(); 
+                
+                :};
 
 identifier ::=  MAIN {: RESULT = "main";:}
               | ID:id {: RESULT = id.toString();:} ;
@@ -472,6 +536,27 @@ creaVar ::=     tipoVar:tip ID:id
                         if(buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id") == null ) {
                             // ++++ Código 3D ++++
                             codIn3D.append("\ndata_"+tip.toString()+" "+id.toString());
+                            String mipsDataType = "";
+                            switch (tip.toString()) {
+                                case "int":
+                                    mipsDataType = "word 0";
+                                    break;
+                                case "float":
+                                    mipsDataType = "float 0.0";
+                                    break;
+                                case "char":
+                                    mipsDataType = "byte 0";
+                                    break;
+                                case "string":
+                                    mipsDataType = "asciiz \"\"";
+                                    break;
+                                case "boolean":
+                                    mipsDataType = "word 0";
+                                    break;
+                                default:
+                                    break;
+                            }
+                            mipsData.append("   " + id.toString()+": ."+mipsDataType+"\n");
                             // +++ Tabla de símbolos ++++ 
                             listaTablaSimbolos.get(currentHash).add(id.toString()+": "+tip.toString());
                             RESULT = id.toString()+": "+tip.toString();
@@ -485,6 +570,27 @@ creaVar ::=     tipoVar:tip ID:id
                     else if(fatherCurrentHash == null && buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id") == null){
                             // ++++ Código 3D ++++
                             codIn3D.append("\ndata_"+tip.toString()+" "+id.toString());
+                            String mipsDataType = "";
+                            switch (tip.toString()) {
+                                case "int":
+                                    mipsDataType = "word 0";
+                                    break;
+                                case "float":
+                                    mipsDataType = "float 0.0";
+                                    break;
+                                case "char":
+                                    mipsDataType = "byte 0";
+                                    break;
+                                case "string":
+                                    mipsDataType = "asciiz \"\"";
+                                    break;
+                                case "boolean":
+                                    mipsDataType = "word 0";
+                                    break;
+                                default:
+                                    break;
+                            }
+                            mipsData.append("   " + id.toString()+": ."+mipsDataType+"\n");
                             // +++ Tabla de símbolos ++++ 
                             listaTablaSimbolos.get(currentHash).add(id.toString()+": "+tip.toString());
                             RESULT = id.toString()+": "+tip.toString();
@@ -504,6 +610,28 @@ creaVar ::=     tipoVar:tip ID:id
                         if(buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id") == null ) {
                             // ++++ Código 3D ++++
                             codIn3D.append("\ndata_"+tip.toString()+" "+id.toString());
+                            String mipsDataType = "";
+                            switch (tip.toString()) {
+                                case "int":
+                                    mipsDataType = "word 0";
+                                    break;
+                                case "float":
+                                    mipsDataType = "float 0.0";
+                                    break;
+                                case "char":
+                                    mipsDataType = "byte 0";
+                                    break;
+                                case "string":
+                                    mipsDataType = "asciiz \"\"";
+                                    break;
+                                case "boolean":
+                                    mipsDataType = "word 0";
+                                    break;
+                                default:
+                                    break;
+                            }
+                            mipsData.append("   " + id.toString()+": ."+mipsDataType+"\n");
+                            mipsData.append("   " + id.toString()+": ."+mipsDataType+"\n");
                             // +++ Tabla de símbolos ++++ 
                             listaTablaSimbolos.get(currentHash).add(id.toString()+": "+tip.toString());
                             RESULT = id.toString()+": "+tip.toString();
@@ -517,6 +645,27 @@ creaVar ::=     tipoVar:tip ID:id
                     else if(fatherCurrentHash == null && buscarID_o_tipoID(listaTablaSimbolos.get(currentHash), id.toString(), "id") == null){
                             // ++++ Código 3D ++++
                             codIn3D.append("\ndata_"+tip.toString()+" "+id.toString());
+                            String mipsDataType = "";
+                            switch (tip.toString()) {
+                                case "int":
+                                    mipsDataType = "word 0";
+                                    break;
+                                case "float":
+                                    mipsDataType = "float 0.0";
+                                    break;
+                                case "char":
+                                    mipsDataType = "byte 0";
+                                    break;
+                                case "string":
+                                    mipsDataType = "asciiz \"\"";
+                                    break;
+                                case "boolean":
+                                    mipsDataType = "word 0";
+                                    break;
+                                default:
+                                    break;
+                            }
+                            mipsData.append("   " + id.toString()+": ."+mipsDataType+"\n");
                             // +++ Tabla de símbolos ++++ 
                             listaTablaSimbolos.get(currentHash).add(id.toString()+": "+tip.toString());
                             RESULT = id.toString()+": "+tip.toString();
@@ -536,8 +685,32 @@ asignacion ::=      creaAsignaVar FINEXP
                                 if(!lit.toString().equals("error_semantico")){
                                     String[] partes = lit.toString().split("::");
                                     // ++++ Código 3D ++++
-                                    String temp = "t"+(currentTemp++); 
+                                    String temp = "t"+(currentTemp); 
                                     codIn3D.append("\n"+id.toString()+" = "+partes[1].toString());
+                                    String mipsAsignation = "";
+                                    switch (partes[0].toString()){
+                                        case "int":
+                                            mipsAsignation = "sw $"+partes[1].toString()+", "+id.toString();
+                                            break;
+                                        case "float":
+                                            mipsAsignation = "sw.s $"+partes[1].toString()+", "+id.toString();
+                                            break;
+                                        case "char":
+                                            mipsAsignation = "sw $"+partes[1].toString()+", "+id.toString();
+                                            break;
+                                        case "string":
+                                            mipsMain.append("\n   "+"la $"+partes[1].toString()+", "+id.toString());
+                                            mipsAsignation = stringCreationMips;
+                                            stringCreationMips = "";
+                                            break;
+                                        case "boolean":
+                                            mipsAsignation = "sw $"+partes[1].toString()+", "+id.toString();
+                                            break;
+                                        default:
+                                            break;
+                                    }
+                                    mipsMain.append("\n   "+mipsAsignation);
+
                                     RESULT = partes[0].toString()+"::"+temp; 
                                 }
                                 else{
@@ -554,8 +727,31 @@ asignacion ::=      creaAsignaVar FINEXP
                             if(!lit.toString().equals("error_semantico")){
                                 String[] partes = lit.toString().split("::");
                                 // ++++ Código 3D ++++
-                                String temp = "t"+(currentTemp++); 
+                                String temp = "t"+(currentTemp); 
                                 codIn3D.append("\n"+id.toString()+" = "+partes[1].toString());
+                                String mipsAsignation = "";
+                                switch (partes[0].toString()){
+                                    case "int":
+                                        mipsAsignation = "sw $"+partes[1].toString()+", "+id.toString();
+                                        break;
+                                    case "float":
+                                        mipsAsignation = "sw.s $"+partes[1].toString()+", "+id.toString();
+                                        break;
+                                    case "char":
+                                        mipsAsignation = "sw $"+partes[1].toString()+", "+id.toString();
+                                        break;
+                                    case "string":
+                                        mipsMain.append("\n   "+"la $"+partes[1].toString()+", "+id.toString());
+                                        mipsAsignation = stringCreationMips;
+                                        stringCreationMips = "";
+                                        break;
+                                    case "boolean":
+                                        mipsAsignation = "sw $"+partes[1].toString()+", "+id.toString();
+                                        break;
+                                    default:
+                                        break;
+                                }
+                                mipsMain.append("\n   "+mipsAsignation);
                                 RESULT = partes[0].toString()+"::"+temp; 
                             }
                             else{
@@ -606,6 +802,26 @@ creaAsignaVar ::=    creaVar:cv EQUIV literal:lit
                             else{ 
                                 // ++++ Código 3D ++++
                                 codIn3D.append("\n"+partes_cv[0]+" = "+partes_lit[1]);
+                                String mipsAsignation = "";
+                                String temp = "t"+(currentTemp); 
+                                switch (partes_lit[0].toString()){
+                                    case "int":
+                                        mipsAsignation = "sw $"+partes_lit[1]+", "+partes_cv[0];
+                                        break;
+                                    case "float":
+                                        mipsAsignation = "s.s $"+partes_lit[1]+", "+partes_cv[0];
+                                        break;
+                                    case "char":
+                                        mipsAsignation = "sb $"+partes_lit[1]+", "+partes_cv[0];
+                                        break;
+                                    case "string":
+                                        mipsMain.append("\n   "+"la $"+partes_lit[1]+", "+partes_cv[0]);
+                                        mipsAsignation = stringCreationMips;
+                                        stringCreationMips = "";
+                                    default:
+                                        break;
+                                }
+                                mipsMain.append("\n   "+mipsAsignation);
                             }
                         }
                         else{
@@ -621,6 +837,25 @@ creaAsignaVar ::=    creaVar:cv EQUIV literal:lit
                             // ++++ Código 3D ++++
                             String temp = "t"+(currentTemp++); 
                             codIn3D.append("\n"+partesLadoIzq[0].toString()+" = "+partes[1].toString());
+                            String mipsAsignation = "";
+                            switch (partes[0].toString()){
+                                case "int":
+                                    mipsAsignation = "sw $"+partes[1].toString()+", "+partesLadoIzq[0].toString();
+                                    break;
+                                case "float":
+                                    mipsAsignation = "s.s $"+partes[1].toString()+", "+partesLadoIzq[0].toString();
+                                    break;
+                                case "char":
+                                    mipsAsignation = "sb $"+partes[1].toString()+", "+partesLadoIzq[0].toString();
+                                    break;
+                                case "string":
+                                    mipsMain.append("\n   "+"la $"+partes[1]+", "+partesLadoIzq[0].toString());
+                                    mipsAsignation = stringCreationMips;
+                                    stringCreationMips = "";
+                                default:
+                                    break;
+                            }
+                            mipsMain.append("\n   "+mipsAsignation);
                             RESULT = partes[0].toString()+"::"+temp; 
                         }
                         else{
@@ -638,15 +873,33 @@ literal ::=     operacion:op {:RESULT = op ;:}// operacion contiene operando ari
                 {: // ++++ Código 3D ++++
                    String temp = "t"+(currentTemp++); 
                    codIn3D.append("\n"+temp+" = "+cad.toString());
+                   char[] caracteres = cad.toString().toCharArray();
+                   String mipsAsignation = "";
+                   for (int i = 1; i < caracteres.length - 1; i++){
+                        mipsAsignation = "li $t"+(currentTemp+1)+", \'"+ caracteres[i] + "'";
+                        stringCreationMips = stringCreationMips + "\n   " + mipsAsignation;
+                        stringCreationMips = stringCreationMips + "\n   sb $t"+(currentTemp+1)+", ($"+temp+")";
+                        stringCreationMips = stringCreationMips + "\n   addi $"+temp+", $"+temp+", 1";
+                   }
+                   stringCreationMips = stringCreationMips + "\n   li $t"+(currentTemp+1)+", 0";
+                   stringCreationMips = stringCreationMips + "\n   sb $t"+(currentTemp+1)+", ($"+temp+")";
+
                    RESULT = "string::"+temp; 
                :}
             |   CARACTER:car 
                 {: // ++++ Código 3D ++++
                    String temp = "t"+(currentTemp++); 
                    codIn3D.append("\n"+temp+" = "+car.toString());
+                   String mipsAsignation = "li $"+temp+", "+ car.toString();
+                   mipsMain.append("\n   "+mipsAsignation);
                    RESULT = "char::"+temp; 
                 :}
-            |   BOOLEAN 
+            |   BOOLEAN:bool
+                {:  String temp = "t"+(currentTemp++); 
+                    codIn3D.append("\n"+temp+" = "+bool.toString());
+                    String mipsAsignation = "li $"+temp+", "+ bool.toString();
+                    mipsMain.append("\n   "+mipsAsignation);
+                    RESULT = "boolean::"+temp; :}
             |   error {: manejoError("Error de literal", "sintáctico"); :};
 
 operacion ::=       operacionLogica:opLog {: RESULT = opLog; :} ;
@@ -694,7 +947,24 @@ operacionAritmetica ::=     operandoArit:opeArit {: RESULT = opeArit; :}
                                         // ++++ Código 3D ++++
                                         String temp = "t"+(currentTemp++); 
                                         codIn3D.append("\n"+temp+" = "+op1_partes[1]+" "+operador.toString()+" "+op2_partes[1]);
-                                        
+                                        String mipsOperacion = "";
+                                        switch (operador.toString()) {
+                                            case "+":
+                                                mipsOperacion = "add $"+temp+", $"+op1_partes[1]+", $"+op2_partes[1];
+                                                break;
+                                            case "-":
+                                                mipsOperacion = "sub $"+temp+", $"+op1_partes[1]+", $"+op2_partes[1];
+                                                break;
+                                            case "*":
+                                                mipsOperacion = "mul $"+temp+", $"+op1_partes[1]+", $"+op2_partes[1];
+                                                break;
+                                            case "/":
+                                                mipsOperacion = "div $"+temp+", $"+op1_partes[1]+", $"+op2_partes[1];
+                                                break;
+                                            default:
+                                                break;
+                                        }
+                                        mipsMain.append("\n   "+mipsOperacion);
                                         RESULT = op1_partes[0]+"::"+temp;
                                     }
                                     else if(!op1_partes[0].equals(op2_partes[0])){
@@ -742,12 +1012,16 @@ operandoArit ::=        ENTERO:ent
                         {: // ++++ Código 3D ++++
                             String temp = "t"+(currentTemp++); 
                             codIn3D.append("\n"+temp+" = "+ent.toString());
+                            String mipsAsignation = "li $"+temp+", "+ ent.toString();
+                            mipsMain.append("\n   "+mipsAsignation);
                             RESULT = "int::"+temp; 
                         :}
                     |   DECIMAL:dec
                         {: // ++++ Código 3D ++++
-                            String temp = "t"+(currentTemp++); 
+                            String temp = "f"+(currentTemp++); 
                             codIn3D.append("\n"+temp+" = "+dec.toString());
+                            String mipsAsignation = "li.s $"+temp+", "+ dec.toString();
+                            mipsMain.append("\n   "+mipsAsignation);
                             RESULT = "float::"+temp; 
                         :}
                     |   ID:id 
@@ -756,6 +1030,28 @@ operandoArit ::=        ENTERO:ent
                             // ++++ Código 3D ++++
                             String temp = "t"+(currentTemp++); 
                             codIn3D.append("\n"+temp+" = "+id.toString());
+                            String mipsAsignation = "";
+                            switch (tipo){
+                                case "int":
+                                    mipsAsignation = "li $"+temp+", "+id.toString();
+                                    break;
+                                case "float":
+                                    temp = "f"+(currentTemp++);
+                                    mipsAsignation = "li.s $"+temp+", "+id.toString();
+                                    break;
+                                case "char":
+                                    mipsAsignation = "li $"+temp+", "+id.toString();
+                                    break;
+                                case "string":
+                                    mipsAsignation = "li $"+temp+", "+id.toString();
+                                    break;
+                                case "boolean":
+                                    mipsAsignation = "li $"+temp+", "+id.toString();
+                                    break;
+                                default:
+                                    break;
+                            }
+                            mipsMain.append("\n   "+mipsAsignation);
                             RESULT = tipo+"::"+temp+"::"+id.toString(); 
                         }
                         else if (fatherCurrentHash != null && buscarID_o_tipoID(listaTablaSimbolos.get(fatherCurrentHash), id.toString(), "id") != null ){
@@ -763,6 +1059,27 @@ operandoArit ::=        ENTERO:ent
                             String tipo2 = buscarID_o_tipoID(listaTablaSimbolos.get(fatherCurrentHash), id.toString(), "id");
                             String temp = "t"+(currentTemp++); 
                             codIn3D.append("\n"+temp+" = "+id.toString());
+                            String mipsAsignation = "";
+                            switch (tipo2){
+                                case "int":
+                                    mipsAsignation = "li $"+temp+", "+id.toString();
+                                    break;
+                                case "float":
+                                    mipsAsignation = "li.s $"+temp+", "+id.toString();
+                                    break;
+                                case "char":
+                                    mipsAsignation = "li $"+temp+", "+id.toString();
+                                    break;
+                                case "string":
+                                    mipsAsignation = "li $"+temp+", "+id.toString();
+                                    break;
+                                case "boolean":
+                                    mipsAsignation = "li $"+temp+", "+id.toString();
+                                    break;
+                                default:
+                                    break;
+                            }
+                            mipsMain.append("\n   "+mipsAsignation);
                             RESULT = tipo2+"::"+temp+"::"+id.toString();
                         }
                         else{
@@ -926,7 +1243,9 @@ llamaFunc ::=       ID:id LPARENT parametrosLlamada RPARENT
                             // ++++ Código 3D ++++
                             String temp = "t"+(currentTemp++);
                             codIn3D.append("\n"+temp+"= call "+id.toString()+ ", " + parametrosFuncion.size());
-                            RESULT = tipoFunc+"::"+temp +"::"+id.toString()+", "+ parametrosFuncion.size();
+                            if (RESULT != "error_semantico"){
+                                RESULT = tipoFunc+"::"+temp +"::"+id.toString()+", "+ parametrosFuncion.size();
+                            }
                        }
                        else{
                             String tamaño1 = String.valueOf(parametrosFuncion.size());
@@ -983,14 +1302,29 @@ escribeInt ::=      PRINT_INT LPARENT ID:id RPARENT FINEXP {:
                         if(tipo.equals("int")){
                             // ++++ Código 3D ++++
                             codIn3D.append("\ncall printInt t"+(currentTemp-1));
+                            mipsMain.append("\n   lw $a0, "+id.toString());
+                            mipsMain.append("\n   li $v0, 1");
+                            mipsMain.append("\n   syscall");
+                            mipsMain.append("\n   addi $a0, $0, 0xA");
+                            mipsMain.append("\n   addi $v0, $0, 0xB");
+                            mipsMain.append("\n   syscall");
                         }
                         else{
                             manejoError("El tipo de dato del elemento: "+id.toString()+" no coincide con el tipo de dato del parámetro: int", "semántico");
                         }
                     :}
-                |   PRINT_INT LPARENT ENTERO RPARENT FINEXP
+                |   PRINT_INT LPARENT ENTERO:ent RPARENT FINEXP
                     {:  
-                            codIn3D.append("\ncall printInt t"+(currentTemp-1));
+                            
+                            // ++++ Código 3D ++++
+                            //codIn3D.append("\nt"+(currentTemp)+" = "+ent.toString());
+                            codIn3D.append("\ncall printInt t"+(currentTemp - 1));
+                            mipsMain.append("\n   li $a0, "+ent.toString());
+                            mipsMain.append("\n   li $v0, 1");
+                            mipsMain.append("\n   syscall");
+                            mipsMain.append("\n   addi $a0, $0, 0xA");
+                            mipsMain.append("\n   addi $v0, $0, 0xB");
+                            mipsMain.append("\n   syscall");
                     :};
 
 
@@ -999,14 +1333,26 @@ escribeFloat ::=    PRINT_FLOAT LPARENT ID:id RPARENT FINEXP {:
                         if(tipo.equals("float")){
                             // ++++ Código 3D ++++
                             codIn3D.append("\ncall printFloat t"+(currentTemp-1));
+                            mipsMain.append("\n   l.s $f12, "+id.toString());
+                            mipsMain.append("\n   li $v0, 2");
+                            mipsMain.append("\n   syscall");
+                            mipsMain.append("\n   addi $a0, $0, 0xA");
+                            mipsMain.append("\n   addi $v0, $0, 0xB");
+                            mipsMain.append("\n   syscall");
                         }
                         else{
                             manejoError("El tipo de dato del elemento: "+id.toString()+" no coincide con el tipo de dato del parámetro: float", "semántico");
                         }
                     :}
-                |   PRINT_FLOAT LPARENT DECIMAL RPARENT FINEXP
+                |   PRINT_FLOAT LPARENT DECIMAL:dec RPARENT FINEXP
                     {:  
                             codIn3D.append("\nprintFloat t"+(currentTemp-1));
+                            mipsMain.append("\n   li.s $f12, "+dec.toString());
+                            mipsMain.append("\n   li $v0, 2");
+                            mipsMain.append("\n   syscall");
+                            mipsMain.append("\n   addi $a0, $0, 0xA");
+                            mipsMain.append("\n   addi $v0, $0, 0xB");
+                            mipsMain.append("\n   syscall");
                     :};
 
 escribeString ::= PRINT_STRING LPARENT ID:id RPARENT FINEXP {:
@@ -1014,14 +1360,29 @@ escribeString ::= PRINT_STRING LPARENT ID:id RPARENT FINEXP {:
                         if(tipo.equals("string")){
                             // ++++ Código 3D ++++
                             codIn3D.append("\ncall printString t"+(currentTemp-1));
+                            mipsMain.append("\n   la $a0, "+id.toString());
+                            mipsMain.append("\n   li $v0, 4");
+                            mipsMain.append("\n   syscall");
+                            mipsMain.append("\n   addi $a0, $0, 0xA");
+                            mipsMain.append("\n   addi $v0, $0, 0xB");
+                            mipsMain.append("\n   syscall");
                         }
                         else{
                             manejoError("El tipo de dato del elemento: "+id.toString()+" no coincide con el tipo de dato del parámetro: string", "semántico");
                         }
                     :}
-                | PRINT_STRING LPARENT CADENA RPARENT FINEXP
+                | PRINT_STRING LPARENT CADENA:cad RPARENT FINEXP
                     {:  
                             codIn3D.append("\ncall printString t"+(currentTemp-1));
+                            char[] caracteres = cad.toString().toCharArray();
+                            for (int i = 1; i < (caracteres.length-1); i++) {
+                                mipsMain.append("\n   li $a0, \'"+ caracteres[i]+"\'");
+                                mipsMain.append("\n   li $v0, 11");
+                                mipsMain.append("\n   syscall");
+                            }
+                            mipsMain.append("\n   addi $a0, $0, 0xA");
+                            mipsMain.append("\n   addi $v0, $0, 0xB");
+                            mipsMain.append("\n   syscall");
                     :};
 
 ////// Control de flujo ///////
@@ -1045,9 +1406,12 @@ beginIf ::= {: String tipoTabla = "tipo:condicional:if";
                 currentHashPos++;
                 listaTablaSimbolos.put(currentHash, listaSimbolos);
                 codIn3D.append("\n_if_" + contador_if + ":");
+                mipsMain.append("\n_if_" + contador_if + ":");
                 :} ;
 
-endIf ::= {:    codIn3D.append("\n_end_if_"+(contador_if)+":"); :} ;
+endIf ::= {:    codIn3D.append("\n_end_if_"+(contador_if)+":");
+                mipsMain.append("\n_end_if_"+(contador_if)+":");
+             :} ;
 
 evaluaCondicionIf ::= {:    int temporalAnterior = currentTemp;
                             codIn3D.append("\nif t"+(--temporalAnterior)+" goto _if_"+(contador_if)+"_bloque");
@@ -1064,7 +1428,10 @@ endBloqueIf ::= {:  hashTree.removeLast();
                     else
                         fatherCurrentHash = null;  
                     codIn3D.append("\ngoto _end_if_"+(contador_if)); 
-                    codIn3D.append("\n_end_if_"+(contador_if)+"_bloque:"); :} ;
+                    codIn3D.append("\n_end_if_"+(contador_if)+"_bloque:"); 
+                    mipsMain.append("\n   j _end_if_"+(contador_if));
+                    mipsMain.append("\n_end_if_"+(contador_if)+"_bloque:");
+                    :} ;
 
 condsElif ::= condElif
             | condElif condsElif;
@@ -1087,7 +1454,9 @@ evaluaCondicionElif ::= {:    int temporalAnterior = currentTemp;
                             codIn3D.append("\ngoto _end_if_"+(contador_if)+"_elif_"+(contador_elif)+"_bloque");
                         :} ;
 
-beginBloqueElif ::= {: codIn3D.append("\n_if_"+(contador_if)+"_elif_"+(contador_elif)+"_bloque:"); :} ;
+beginBloqueElif ::= {: codIn3D.append("\n_if_"+(contador_if)+"_elif_"+(contador_elif)+"_bloque:");
+                        mipsMain.append("\n_if_"+(contador_if)+"_elif_"+(contador_elif)+"_bloque:");
+                         :} ;
 
 endBloqueElif ::= {: 
                         hashTree.removeLast();
@@ -1099,6 +1468,8 @@ endBloqueElif ::= {:
                             fatherCurrentHash = null;  
                         codIn3D.append("\ngoto _end_if_"+(contador_if)); 
                         codIn3D.append("\n_end_if_"+(contador_if)+"_elif_"+(contador_elif)+"_bloque:"); 
+                        mipsMain.append("\n   j _end_if_"+(contador_if));
+                        mipsMain.append("\n_end_if_"+(contador_if)+"_elif_"+(contador_elif)+"_bloque:");
                         :} ;
 
 
@@ -1114,6 +1485,7 @@ beginElse ::= {: String tipoTabla = "tipo:condicional:else";
                 currentHashPos++;
                 listaTablaSimbolos.put(currentHash, listaSimbolos);
                 codIn3D.append("\n_if_"+ contador_if +"_else_" + contador_else + ":");
+                mipsMain.append("\n_if_"+ contador_if +"_else_" + contador_else + ":");
                 :} ;
 
 endElse ::= {:
@@ -1124,7 +1496,9 @@ endElse ::= {:
                     fatherCurrentHash = hashTree.get(currentHashPos-1);
                 else
                     fatherCurrentHash = null;  
-                codIn3D.append("\n_end_if_else_"+(contador_else)+":"); :} ;
+                codIn3D.append("\n_end_if_else_"+(contador_else)+":"); 
+                mipsMain.append("\n_end_if_else_"+(contador_else)+":");
+                :} ;
 
 
 ciclo ::= cicloDoWhile
@@ -1143,6 +1517,7 @@ beginWhile ::= {: String tipoTabla = "tipo:ciclo:while";
                 currentHashPos++;
                 listaTablaSimbolos.put(currentHash, listaSimbolos);
                 codIn3D.append("\n_begin_while_"+(contador_while)+":");
+                mipsMain.append("\n_begin_while_"+(contador_while)+":");
             :} ;
 
 endWhile ::=  {:  
@@ -1154,12 +1529,18 @@ endWhile ::=  {:
                 else
                     fatherCurrentHash = null;       
                 codIn3D.append("\n_end_while_"+(contador_while)+":"); 
+                mipsMain.append("\n_end_while_"+(contador_while)+":");
             :} ;
 
-beginCicloWhile ::= {: codIn3D.append("\n_begin_while_"+(contador_while)+"_bloque:"); :}; 
+beginCicloWhile ::= {:  codIn3D.append("\n_begin_while_"+(contador_while)+"_bloque:");
+                        mipsMain.append("\n_begin_while_"+(contador_while)+"_bloque:");
+                     :}; 
 
-endCicloWhile ::= {: codIn3D.append("\ngoto _begin_while_"+(contador_while)+"_condicion");
-                codIn3D.append("\n_end_while_"+(contador_while)+"_bloque:"); :} ;
+endCicloWhile ::= {:    codIn3D.append("\ngoto _begin_while_"+(contador_while)+"_condicion");
+                        codIn3D.append("\n_end_while_"+(contador_while)+"_bloque:"); 
+                        mipsMain.append("\nj _begin_while_"+(contador_while)+"_condicion");
+                        mipsMain.append("\n_end_while_"+(contador_while)+"_bloque:");
+                    :} ;
 
 beginCondicionWhile ::= {: codIn3D.append("\n_begin_while_"+(contador_while)+"_condicion:"); 
                             currentHashPos--; :};

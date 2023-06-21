@@ -1,17 +1,25 @@
 ++++++++ CODIGO 3D +++++++++
-_otraFun_begin:
-t0 = a
-return t0
-_otraFun_end:
 _main_begin:
-data_int b
-data_int a
-t1 = 4
-a = t1
+data_int var
+t0 = 7
+var = t0
+t1 = 7
 t2 = 5
-param t2
-t3= call otraFun, 1
-b = t3
-t5 = 6
-return t5
+t3 = t1 + t2
+var = t3
+call printInt t3
+data_float var2
+f4 = 7.5
+var2 = f4
+printFloat t4
+data_string var3
+t5 = "Hola Mundo"
+var3 = t5
+call printString t5
+call printString t5
+t6 = "Hola Mundo!!!"
+var3 = t6
+call printString t6
+t7 = 0
+return t7
 _main_end:

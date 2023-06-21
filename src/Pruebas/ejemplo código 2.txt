@@ -1,37 +1,21 @@
-int main(){
-	read(miInt2)$
-	print("hola")$
-	print(34)$
-	print(6.7)$
-	return 1$
+int funcA (){
+	int num1$
+	int num2$
+	do {
+		if (num1 > 99 ^ num2 < 55){
+			num2 = num2 - 22$
+		}
+		elif (num1 == 100){
+			num1 = num1 ** 11 ~ 33$
+		}
+	} while (num1 < num2)$
+	return num1$
 }
 
-float miFunc (int dif, char otra){
-	int otra$
-	string str = "Hola $%&/#$&) mundo"$
-	for(int i=0$i>10$++i)
-	{
-		do
-		{
-			var = var - 1$
-		}while(var>12 # (34 + 34)>12)$
-
-		if (var == 0)
-		{
-			print("entra al if")$
-		}
-		elif(true)
-		{
-			print(var)$
-		}
-		elif(false^true)
-		{
-			read(var2)$
-		}
-	}
-	return 1$ @error
-}
-
-boolean miOtraFun(){
-	return 5.6$ @error
+int main () {
+	int num = readInt()$
+	int res = funcA()$
+	printString("El resultado es: ")$
+	printInt(res)$
+	return -1$
 }

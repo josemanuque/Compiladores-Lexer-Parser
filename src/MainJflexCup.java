@@ -89,8 +89,13 @@ public class MainJflexCup {
         try{
             String pathParserOutput = "src/Reports/outputParser1.txt";
             String pathParserCod3Doutput = "src/Reports/outputCod3D.txt";
+            int inicio = pathTest.lastIndexOf("/") + 1;
+            int fin = pathTest.lastIndexOf(".");
+            String nombre = pathTest.substring(inicio, fin);
+            String pathMips = "src/Reports/"+nombre+".asm";
             BufferedWriter file = new BufferedWriter(new FileWriter(pathParserOutput));
             BufferedWriter file3D = new BufferedWriter(new FileWriter(pathParserCod3Doutput));
+            BufferedWriter fileMips = new BufferedWriter(new FileWriter(pathMips));
             Reader inputLexer = new FileReader(pathTest);
             Lexer lexer = new Lexer(inputLexer);
             parser parser = new parser(lexer);
@@ -110,6 +115,17 @@ public class MainJflexCup {
             file3D.write("++++++++ CODIGO 3D +++++++++");
             file3D.write(parser.getCodIn3D().toString());
         
+
+            fileMips.write("");
+            fileMips.write(".data\n");
+            fileMips.write(parser.getMipsData().toString());
+            fileMips.write(".text\n");
+            fileMips.write(".globl main\n");
+            fileMips.write(parser.getMipsMain().toString());
+            fileMips.write("\n   li $v0, 10");
+            fileMips.write("\n   syscall");
+    
+
             if(parser.getErrores() == false){
                 System.out.println("El archivo puede ser generado por la gramática.");
                 file.write("El archivo puede ser generado por la gramática.");
@@ -120,6 +136,7 @@ public class MainJflexCup {
             }
             file.close();
             file3D.close();
+            fileMips.close();
         }
         catch (Exception e) {
             System.out.println("El archivo fuente tiene errores, no puede ser generado por la gramática.");

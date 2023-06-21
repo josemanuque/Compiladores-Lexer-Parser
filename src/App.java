@@ -1,5 +1,6 @@
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Scanner;
 
 public class App {
     private static String basePath = System.getProperty("user.dir");
@@ -26,13 +27,24 @@ public class App {
         MainJflexCup main = new MainJflexCup();
 
         // Pruebas
-        main.runLexer(basePath + "/src/Pruebas/semantico2.txt");
-        main.runParser(basePath + "/src/Pruebas/semantico2.txt");
+        main.runLexer(basePath + "/src/Pruebas/semantico.txt");
+        main.runParser(basePath + "/src/Pruebas/semantico.txt");
+    }
+
+    public static void Compilar() throws Exception {
+        MainJflexCup main = new MainJflexCup();
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Ingrese el nombre del archivo a compilar (sin la extension): ");
+        String nombre = scanner.nextLine();
+        scanner.close();
+        // Pruebas
+        main.runLexer(basePath + "/src/Pruebas/"+nombre+".txt");
+        main.runParser(basePath + "/src/Pruebas/"+nombre+".txt");
     }
 
     public static void main(String[] args) throws Exception{
         //GenerarLexerParser();
         //Thread.sleep(3000); //sleep para darle tiempo a que se generen los archivos
-        PruebasLexerParser();
+        Compilar();
     }
 }

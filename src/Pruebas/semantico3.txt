@@ -16,7 +16,7 @@ float miFunc (int dif, char otra){
 		}
 		elif(true)
 		{
-			readInt(var)$
+			var = readInt()$
 		}
 	}
 	return 1$ @error

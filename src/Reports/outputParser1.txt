@@ -1,14 +1,9 @@
 -------------------------
 
-Tabla de símbolos: otraFun
-Valores: tipo:funcion:otraFun: int
-Parámetro: a: int
-
--------------------------
-
 Tabla de símbolos: main
 Valores: tipo:funcion:main: int
-b: int
-a: int
+var: int
+var2: float
+var3: string
 
 El archivo puede ser generado por la gramática.
