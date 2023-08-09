@@ -1,25 +1,34 @@
 ++++++++ CODIGO 3D +++++++++
+_test_begin:
+data_int a
+t0 = 0
+a = t0
+t1 = a
+return t1
+_test_end:
 _main_begin:
 data_int var
-t0 = 7
-var = t0
-t1 = 7
-t2 = 5
-t3 = t1 + t2
-var = t3
-call printInt t3
-data_float var2
-f4 = 7.5
-var2 = f4
-printFloat t4
+t2 = 10
+var = t2
 data_string var3
-t5 = "Hola Mundo"
-var3 = t5
-call printString t5
-call printString t5
-t6 = "Hola Mundo!!!"
-var3 = t6
+t3 = "Hola Mundo"
+var3 = t3
+call printString t3
+printFloat t3
+_if_1:
+t4 = var
+t5 = 9
+t6 = t4 <= t5
+if t6 goto _if_1_bloque
+goto _end_if_1_bloque
+_if_1_bloque:
 call printString t6
+goto _end_if_1
+_end_if_1_bloque:
+_if_1_else_1:
+call printString t6
+_end_if_else_1:
+_end_if_1:
 t7 = 0
 return t7
 _main_end:

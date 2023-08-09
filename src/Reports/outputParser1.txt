@@ -1,9 +1,24 @@
 -------------------------
 
+Tabla de símbolos: test
+Valores: tipo:funcion:test: int
+a: int
+
+-------------------------
+
+Tabla de símbolos: if_1_else_1main
+Valores: tipo:condicional:else
+
+-------------------------
+
 Tabla de símbolos: main
 Valores: tipo:funcion:main: int
 var: int
-var2: float
 var3: string
+
+-------------------------
+
+Tabla de símbolos: if_1_main
+Valores: tipo:condicional:if
 
 El archivo puede ser generado por la gramática.

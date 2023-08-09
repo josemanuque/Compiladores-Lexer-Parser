@@ -34,7 +34,7 @@ public class App {
     public static void Compilar() throws Exception {
         MainJflexCup main = new MainJflexCup();
         Scanner scanner = new Scanner(System.in);
-        System.out.println("Ingrese el nombre del archivo a compilar (sin la extension): ");
+        System.out.print("Ingrese el nombre del archivo a compilar (sin la extension): ");
         String nombre = scanner.nextLine();
         scanner.close();
         // Pruebas

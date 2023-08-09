@@ -2387,20 +2387,20 @@ class CUP$parser$actions {
                             String mipsAsignation = "";
                             switch (tipo){
                                 case "int":
-                                    mipsAsignation = "li $"+temp+", "+id.toString();
+                                    mipsAsignation = "lw $"+temp+", "+id.toString();
                                     break;
                                 case "float":
                                     temp = "f"+(currentTemp++);
-                                    mipsAsignation = "li.s $"+temp+", "+id.toString();
+                                    mipsAsignation = "lw.s $"+temp+", "+id.toString();
                                     break;
                                 case "char":
-                                    mipsAsignation = "li $"+temp+", "+id.toString();
+                                    mipsAsignation = "lw $"+temp+", "+id.toString();
                                     break;
                                 case "string":
-                                    mipsAsignation = "li $"+temp+", "+id.toString();
+                                    mipsAsignation = "lw $"+temp+", "+id.toString();
                                     break;
                                 case "boolean":
-                                    mipsAsignation = "li $"+temp+", "+id.toString();
+                                    mipsAsignation = "lw $"+temp+", "+id.toString();
                                     break;
                                 default:
                                     break;
@@ -2416,19 +2416,19 @@ class CUP$parser$actions {
                             String mipsAsignation = "";
                             switch (tipo2){
                                 case "int":
-                                    mipsAsignation = "li $"+temp+", "+id.toString();
+                                    mipsAsignation = "lw $"+temp+", "+id.toString();
                                     break;
                                 case "float":
-                                    mipsAsignation = "li.s $"+temp+", "+id.toString();
+                                    mipsAsignation = "lw.s $"+temp+", "+id.toString();
                                     break;
                                 case "char":
-                                    mipsAsignation = "li $"+temp+", "+id.toString();
+                                    mipsAsignation = "lw $"+temp+", "+id.toString();
                                     break;
                                 case "string":
-                                    mipsAsignation = "li $"+temp+", "+id.toString();
+                                    mipsAsignation = "lw $"+temp+", "+id.toString();
                                     break;
                                 case "boolean":
-                                    mipsAsignation = "li $"+temp+", "+id.toString();
+                                    mipsAsignation = "lw $"+temp+", "+id.toString();
                                     break;
                                 default:
                                     break;
@@ -2532,7 +2532,28 @@ class CUP$parser$actions {
                                         // ++++ Código 3D ++++
                                         String temp = "t"+(currentTemp++); 
                                         codIn3D.append("\n"+temp+" = "+op1_partes[1]+" "+operador.toString()+" "+op2_partes[1]);
-                                        RESULT = "boolean::"+temp;
+                                        switch(operador.toString()){
+                                            case ">":
+                                                stringCreationMips = "\n   bgt $"+op1_partes[1]+", $"+op2_partes[1]+", ";
+                                                break;
+                                            case ">=":
+                                                stringCreationMips = "\n   bge $"+op1_partes[1]+", $"+op2_partes[1]+", ";
+                                                break;
+                                            case "<":
+                                                stringCreationMips = "\n   blt $"+op1_partes[1]+", $"+op2_partes[1]+", ";
+                                                break;
+                                            case "<=":
+                                                stringCreationMips = "\n   ble $"+op1_partes[1]+", $"+op2_partes[1]+", ";
+                                                break;
+                                            case "==":
+                                                stringCreationMips = "\n   beq $"+op1_partes[1]+", $"+op2_partes[1]+", ";
+                                                break;
+                                            case "!=":
+                                                stringCreationMips = "\n   bne $"+op1_partes[1]+", $"+op2_partes[1]+", ";
+                                                break;
+                                        }
+                                        
+                                        RESULT = "boolean::"+temp+"::"+operador.toString();
                                     }
                                     else if(!op1_partes[0].equals(op2_partes[0])){
                                         System.out.println("+++++++++El tipo de la operación Relacional 1 es: "+operacion1.toString());
@@ -3197,6 +3218,10 @@ class CUP$parser$actions {
 		    int temporalAnterior = currentTemp;
                             codIn3D.append("\nif t"+(--temporalAnterior)+" goto _if_"+(contador_if)+"_bloque");
                             codIn3D.append("\ngoto _end_if_"+(contador_if)+"_bloque");
+                            mipsMain.append("\n   "+ stringCreationMips + "_if_"+(contador_if)+"_bloque");
+                            mipsMain.append("\n   j _end_if_"+(contador_if)+"_bloque");
+                            stringCreationMips = "";
+                            System.out.println("if t"+(temporalAnterior)+" goto _if_"+(contador_if)+"_bloque");
                         
               CUP$parser$result = parser.getSymbolFactory().newSymbol("evaluaCondicionIf",76, ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
@@ -3206,7 +3231,9 @@ class CUP$parser$actions {
           case 122: // beginBloqueIf ::= 
             {
               Object RESULT =null;
-		 codIn3D.append("\n_if_"+(contador_if)+"_bloque:"); 
+		 codIn3D.append("\n_if_"+(contador_if)+"_bloque:");
+                        mipsMain.append("\n_if_"+(contador_if)+"_bloque:");
+                     
               CUP$parser$result = parser.getSymbolFactory().newSymbol("beginBloqueIf",77, ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
           return CUP$parser$result;
